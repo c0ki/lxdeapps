@@ -1,5 +1,5 @@
 ﻿
-![ ](/opt/tools/slswitch/slswitch.png)
+![SLswitch](slswitch.png)
 
 # SLswitch 
 
@@ -7,10 +7,10 @@
 
 ##### Installation
 
-* Decompress it into /opt/tools/slswitch
-* sudo ln -s /opt/tools/slswitch/slswitch.rules /etc/udev/rules.d/99-slswitch.rules
-* sudo ln -s /opt/tools/slswitch/slswitch /usr/local/bin/slswitch
-* ln -s /opt/tools/slswitch/slswitch.desktop ~/.config/autostart/slswitch.desktop
+* Decompress it into /opt/lxdeapps/slswitch
+* sudo ln -s /opt/lxdeapps/slswitch/slswitch.rules /etc/udev/rules.d/99-slswitch.rules
+* sudo ln -s /opt/lxdeapps/slswitch/slswitch /usr/local/bin/slswitch
+* ln -s /opt/lxdeapps/slswitch/slswitch.desktop ~/.config/autostart/slswitch.desktop
 
 ##### License 
 

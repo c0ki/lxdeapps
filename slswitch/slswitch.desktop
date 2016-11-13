@@ -2,7 +2,7 @@
 Version=0.1
 Name=SLswitch
 Comment=Screen Layout switcher
-Icon=/opt/tools/slswitch/slswitch.png
+Icon=/opt/lxdeapps/slswitch/slswitch.png
 Exec=slswitch
 Categories=Settings;
 Terminal=false

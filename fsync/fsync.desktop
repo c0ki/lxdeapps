@@ -2,7 +2,7 @@
 Version=0.1
 Name=Fsync
 Comment=Files synchronizer
-Icon=/opt/tools/fsync/fsync.png
+Icon=/opt/lxdeapps/fsync/fsync.png
 Exec=fsync
 Categories=Settings;
 Terminal=false

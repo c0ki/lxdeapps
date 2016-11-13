@@ -1,5 +1,5 @@
 ﻿
-![ ](/opt/tools/fsync/fsync.png)
+![Fsync](fsync.png)
 
 # Fsync
 
@@ -7,9 +7,9 @@
 
 ##### Installation
 
-* Decompress it into /opt/tools/fsync/
-* sudo ln -s /opt/tools/fsync/fsync /usr/local/bin/fsync
-* ln -s /opt/tools/fsync/fsync.desktop /usr/share/applications/fsync.desktop
+* Decompress it into /opt/lxdeapps/fsync/
+* sudo ln -s /opt/lxdeapps/fsync/fsync /usr/local/bin/fsync
+* ln -s /opt/lxdeapps/fsync/fsync.desktop /usr/share/applications/fsync.desktop
 
 ##### License
 
