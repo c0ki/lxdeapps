@@ -1,0 +1,10 @@
+[Desktop Entry]S
+Version=0.1
+Name=SLswitch
+Comment=Screen Layout switcher
+Icon=/opt/tools/slswitch/slswitch.png
+Exec=slswitch
+Categories=Settings;
+Terminal=false
+Type=Application
+Hidden=false

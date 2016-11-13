@@ -1,0 +1,113 @@
+#!/bin/bash
+
+APPDIR=$(dirname $(readlink -f "$0"))
+
+source ${APPDIR}/lib/libapp
+source ${APPDIR}/lib/libgtk
+
+APP="Fsync"
+APPUSAGE="${APPUSAGE} [-s|--source] sourcepath [-d|--destintaion] destinationpath"
+
+src=
+dest=
+
+function appargscustom {
+    while [ $# -ne 0 ] ; do
+        case $1 in
+            --source|-s)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --source|-s"
+                fi
+                src=$1
+                ;;
+            --destination|-d)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --destination|-d"
+                fi
+                dest=$1
+                ;;
+            *)
+                apperror "Invalid arguments: $1"
+                ;;
+        esac
+        shift
+    done
+}
+
+appargs $@
+
+[ -z "${src}" ] && src=$(appgetdir "Select directory to sync")
+[ -e "${src}" ] || apperror "Source path '${src}' not exists"
+
+[ -z "${dest}" ] && dest=$(appgetdir "Select destination directory")
+[ -e "${dest}" ] || apperror "Destination path '${dest}' not exists"
+
+#src="smb://192.168.10.201/fichiers$/_Decalog/R&D/e-sidoc/"
+
+[ -d "${src}" ] && [[ ! "${src}" =~ .*\/$ ]] && src="${src}/"
+[[ ! "${dest}" =~ .*\/$ ]] && dest="${dest}/"
+
+appinfo "Synchronization from '${src}' to '${dest}'"
+
+resultfiles=`rsync -vv -tzur "${src}" "${dest}" | tail -n+3 | head -n-4`
+
+recentsfile=$(tempfile)
+srcfile=$(tempfile)
+destfile=$(tempfile)
+
+OLDIFS=$IFS;IFS=$'\n'
+for result in ${resultfiles}
+do
+  filename=${result/ is newer/}
+  filename=${filename/ is uptodate/}
+  echo "${filename}" >> ${srcfile}
+  [[ "${result}" =~ .*\ is\ newer ]] && echo "${filename}" >> ${recentsfile}
+done
+
+for file in $(find "${dest}" -type f)
+do
+  filerelative=${file#$dest}
+  grep -Fxq "${filerelative}" ${srcfile} || echo "${filerelative}" >> ${destfile}
+done
+IFS=$OLDIFS
+
+#echo "Sources files"
+#cat $srcfile
+#echo "====================="
+#echo "File more recent"
+#cat $recentsfile
+#echo "====================="
+#echo "File no exists"
+#cat $destfile
+
+if [ -s ${recentsfile} ] || [ -s ${destfile} ]
+then
+  content=()
+  OLDIFS=$IFS;IFS=$'\n'
+  for file in $(cat ${recentsfile})
+  do
+    content+=("FALSE" "${file}" "> ${file}")
+  done
+  for file in $(cat ${destfile})
+  do
+    content+=("FALSE" "${file}" "! ${file}")
+  done
+  IFS=$OLDIFS
+
+  files=$(appchoice "Some files are not synced on all\nCheck to sync them" "${content[@]}")
+  if [ ! -z "${files}" ]
+  then
+    OLDIFS=$IFS;IFS="|"
+    for file in ${files}
+    do
+      rsync -tzur "${dest}${file}" "${src}$(dirname $file})"
+    done
+    IFS=$OLDIFS
+  fi
+fi
+
+rm ${recentsfile} ${srcfile} ${destfile}
+
+appnotify "Sync success"

@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function appgetfile {
+    return 1
+}
+
+function appgetdir {
+    return 1
+}
+
+function appchoice {
+    return 1
+}
+
+if ((MODGUI))
+then
+
+    function apperror {
+        applogger "[ERROR] ${1}"
+        ((MODQUIET)) && exit 1
+        exec 3> >(zenity --notification --listen)
+        echo "icon:error" >&3
+        echo "message:${APP}\n[Error] $1" >&3
+        exec 3>&-
+        exit 1
+    }
+
+    function appnotify {
+        applogger "[INFO] ${1}"
+        ((MODQUIET)) && return
+        exec 3> >(zenity --notification --listen)
+        echo "icon:${APPICON}" >&3
+        echo "message:${APP}\n$1" >&3
+        exec 3>&-
+    }
+
+    function appgetfile {
+        ((MODQUIET)) && return
+        title="${APP}"
+        [ ! -z "$1" ] && title="${title}: $1"
+        argdir=
+        [ "$2" == "dir" ] && argdir="--directory"
+        zenity --window-icon="${APPICON}" --title="${title}" --file-selection ${argdir} 2>/dev/null
+    }
+
+    function appgetdir {
+        appgetfile "$1" "dir"
+    }
+
+    function appchoice {
+        ((MODQUIET)) && return
+        text=$1
+        shift
+        zenity --list --checklist --window-icon="${APPICON}" --title="${APP}" --text="${text}" --column="checkbox" --column="value" --column="label" --print-column=2 --hide-column=2 --hide-header "$@"  2>/dev/null
+    }
+
+
+fi

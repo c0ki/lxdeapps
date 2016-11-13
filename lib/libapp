@@ -1,0 +1,67 @@
+#!/bin/bash
+
+MODVERBOSE=0
+MODQUIET=0
+MODGUI=0
+[ ! -z $DISPLAY ] && MODGUI=1
+
+[ -z ${APP} ] && APP="Noname"
+[ -z ${APPCMD} ] && APPCMD=$(basename "$0")
+[ -z ${APPDIR} ] && APPDIR=$(dirname $(readlink -f "$0"))
+[ -z ${APPICON} ] && APPICON="${APPDIR}/${APPCMD}.png"
+[ -z ${APPUSAGE} ] && APPUSAGE="Usage: ${APPCMD}"
+APPUSAGE="${APPUSAGE} ([-v|--verbose] [-q|--quiet])"
+
+function appargs {
+    unusedargs=()
+    while [ $# -ne 0 ] ; do
+        case $1 in
+            --verbose|-v)
+                MODVERBOSE=1
+                ;;
+            --quiet|-q)
+                MODQUIET=1
+                ;;
+            --help|-h)
+                echo -e "\e[1;35m"
+                echo -e "${APPUSAGE}"
+                echo -e "\e[0m"
+                exit 0
+                ;;
+            *)
+                unusedargs+=("${1}")
+                ;;
+        esac
+        shift
+    done
+    [ ${#unusedargs[@]} -ne 0 ] && appargscustom ${unusedargs[@]}
+}
+
+function appargscustom {
+    apperror "Invalid arguments: no custom arguments ($@)"
+}
+
+function apperror {
+    applogger "[ERROR] ${1}"
+    ((MODQUIET)) && exit 1
+    echo -ne "\e[0;31m" 1>&2
+    echo -ne "\t-> ${1}" 1>&2
+    echo -e "\e[0m" 1>&2
+    exit 1
+}
+
+function appnotify {
+    appinfo "${1}"
+}
+
+function appinfo {
+    applogger "[INFO] ${1}"
+    ((MODQUIET)) && return
+    echo -ne "\e[0;36m"
+    echo -ne "\t-> ${1}"
+    echo -e "\e[0m"
+}
+
+function applogger {
+    [ ! -z ${APPLOGFILE} ] && [ -f ${APPLOGFILE} ] && echo -e "$(date +"%Y-%m-%d %H:%M:%S") ${1}" >> ${APPLOGFILE}
+}

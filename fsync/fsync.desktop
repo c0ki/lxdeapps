@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.1
+Name=Fsync
+Comment=Files synchronizer
+Icon=/opt/tools/fsync/fsync.png
+Exec=fsync
+Categories=Settings;
+Terminal=false
+Type=Application
+Hidden=false

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+APP="MonitorSwitch"
+APPDIR=$(dirname $(readlink -f "$0"))
+
+user=`who | grep "(:"`
+username=`echo "${user}" | cut -d' ' -f1`
+display=`echo "${user}" | cut -d'(' -f2 | cut -d')' -f1`
+
+export XAUTHORITY=/home/${username}/.Xauthority
+export DISPLAY=${display}.0
+
+source ${APPDIR}/lib/libapp
+source ${APPDIR}/lib/libgtk
+
+order=" DP1 eDP1 HDMI1 HDMI2 TUTU DVI-I-2 DVI-I-1 "
+screens_disconnected=`xrandr | grep "disconnected" | cut -d' ' -f1`
+for screen in ${screens_disconnected}
+do
+    order=${order/ $screen / }
+done
+
+screens_connected=`xrandr | grep " connected" | cut -d' ' -f1`
+screens_connected_order=
+for screen in ${order}
+do
+    [[ ${screens_connected} =~ .*${screen}.* ]] && screens_connected_order="${screens_connected_order} ${screen}"
+done
+for screen in ${screens_connected}
+do
+    [[ ! ${screens_connected_order} =~ .*${screen}.* ]] && screens_connected_order="${screens_connected_order} ${screen}"
+done
+
+args=
+for screen in ${screens_disconnected}
+do
+    args="${args} --output ${screen} --off"
+done
+
+rightof=
+for screen in ${screens_connected_order}
+do
+    args="${args} --output ${screen} --auto --rotate normal"
+    if [ ${rightof} ]
+    then
+        args="${args} --right-of ${rightof}"
+    else
+        args="${args} --primary"
+    fi
+    rightof=${screen}
+done
+
+appinfo "Init screen(s)"
+xrandr $args
+
+appinfo "Restart lxpanel"
+lxpanelctl restart
+
+appnotify "${screens_connected_order}"
