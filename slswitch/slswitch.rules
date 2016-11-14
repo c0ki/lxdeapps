@@ -1,1 +1,1 @@
-ACTION=="change", SUBSYSTEM=="drm", ENV{HOTPLUG}=="1", RUN+="/opt/tools/monitorswitch/monitorswitch"
+ACTION=="change", SUBSYSTEM=="drm", ENV{HOTPLUG}=="1", RUN+="/opt/lxdeapps/slswitch/slswitch"
