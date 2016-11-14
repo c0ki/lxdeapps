@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP="MonitorSwitch"
+APP="SLswitch"
 APPDIR=$(dirname $(readlink -f "$0"))
 
 user=`who | grep "(:"`
@@ -13,7 +13,7 @@ export DISPLAY=${display}.0
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-order=" DP1 eDP1 HDMI1 HDMI2 TUTU DVI-I-2 DVI-I-1 "
+order=" eDP1 DP1 HDMI1 HDMI2 DVI-I-2 DVI-I-1 "
 screens_disconnected=`xrandr | grep "disconnected" | cut -d' ' -f1`
 for screen in ${screens_disconnected}
 do
