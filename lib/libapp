@@ -43,15 +43,19 @@ function appargscustom {
 
 function apperror {
     applogger "[ERROR] ${1}"
-    ((MODQUIET)) && exit 1
+    ((MODQUIET)) && ! (($2)) && exit 1
     echo -ne "\e[0;31m" 1>&2
     echo -ne "\t-> ${1}" 1>&2
     echo -e "\e[0m" 1>&2
-    exit 1
+    !(($2)) && exit 1
 }
 
 function appnotify {
-    appinfo "${1}"
+    applogger "[NOTIFY] ${1}"
+    ((MODQUIET)) && return
+    echo -ne "\e[0;32m"
+    echo -ne "\t-> ${1}"
+    echo -e "\e[0m"
 }
 
 function appinfo {
@@ -64,4 +68,20 @@ function appinfo {
 
 function applogger {
     [ ! -z ${APPLOGFILE} ] && [ -f ${APPLOGFILE} ] && echo -e "$(date +"%Y-%m-%d %H:%M:%S") ${1}" >> ${APPLOGFILE}
+}
+
+function appprogress {
+    ((MODQUIET)) && return
+    cols=$(tput cols)
+    text=
+    while [ $# -ne 0 ]
+    do
+        text="${text}\t${1}"
+        [[ "${1}" =~ ^[0-9]+$ ]] && text="${text}%"
+        [[ "${1}" == "100" ]] && text=
+        shift
+    done
+    printf '%0.s ' $(seq 1 $cols)
+    echo -ne "\r\e[0;33m${text}"
+    echo -ne "\e[0m\r"
 }
