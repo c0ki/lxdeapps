@@ -1,0 +1,89 @@
+#!/bin/bash
+
+APPDIR=$(dirname $(readlink -f "$0"))
+
+source ${APPDIR}/lib/libapp
+source ${APPDIR}/lib/libgtk
+
+APP="xmlvalidator"
+APPUSAGE="${APPUSAGE} (-1.1|--xsd1.1) -s|--xsd xsdpath -x|--xml xmlpath"
+APPICON="emblem-documents-symbolic"
+APPLIBXML="${APPDIR}/libxml"
+MODDIR=0
+
+xsdpath=
+xmlpath=
+xsdversion="1.0"
+
+function appargscustom {
+    while [ $# -ne 0 ] ; do
+        case $1 in
+            --xsd|-s)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --xsd|-s"
+                fi
+                xsdpath=$1
+                ;;
+            --xml|-x)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --xml|-x"
+                fi
+                xmlpath=$1
+                ;;
+            --xsd1.1|-1.1)
+                xsdversion="1.1"
+                ;;
+            *)
+                apperror "Invalid arguments: $1"
+                ;;
+        esac
+        shift
+    done
+}
+
+appargs $@
+
+[ -e "${xsdpath}" ] || apperror "XSD schema not exists (${xsdpath})"
+[ -e "${xmlpath}" ] || apperror "XML file not exists (${xmlpath})"
+
+if [ -d "${xmlpath}" ]
+then
+    MODDIR=1
+    [[ ! "${xmlpath}" =~ .*\/$ ]] && xmlpath="${xmlpath}/"
+    xmlpath="${xmlpath}*.xml"
+fi
+
+shopt -s nocaseglob
+filestotal=$(ls -l ${xmlpath} | wc -l)
+filesprocessed=0
+filesok=0
+percent=0
+for xmlfile in ${xmlpath}
+do
+    appprogress "# ${xmlfile}" "${percent}"
+    errorcode=0
+    errormsg=
+    if [[ "${xsdversion}" == "1.1" ]]
+    then
+        errormsg=`java -jar "${APPLIBXML}/xsd11-validator.jar" --schemaFile "${xsdpath}" --instanceFile "${xmlfile}" 2>&1`
+        [ ! -z "${errormsg}" ] && errorcode=1
+    else
+        errormsg=`xmllint --noout --schema "${xsdpath}" "${xmlfile}" 2>&1`
+        [ ! -z "${errormsg}" ] && errorcode=1
+    fi
+    if [ ${errorcode} -ne 0 ]
+    then
+        apperror "Invalid XML file '${xmlfile}'\n${errormsg}" 1
+        fileserror=$((${fileserror}+1))
+    else
+        filesok=$((${filesok}+1))
+    fi
+    filesprocessed=$((${filesprocessed}+1))
+    percent=$((${filesprocessed}*100/${filestotal}))
+done
+appprogress "100"
+shopt -u nocaseglob
+
+[ ${filesok} -ne 0 ] && appnotify "${filesok}/${filestotal} valid XML files"

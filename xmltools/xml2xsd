@@ -1,0 +1,78 @@
+#!/bin/bash
+
+APPDIR=$(dirname $(readlink -f "$0"))
+
+source ${APPDIR}/lib/libapp
+source ${APPDIR}/lib/libgtk
+
+APP="xml2xsd"
+APPUSAGE="${APPUSAGE} -x|--xml xmlpath -s|--xsd xsdpath\n${APPUSAGE} -x|--xml xmldirectory"
+APPICON="emblem-documents-symbolic"
+APPLIBXML="${APPDIR}/libxml"
+MODDIR=0
+
+xsdpath=
+xmlpath=
+
+function appargscustom {
+    while [ $# -ne 0 ] ; do
+        case $1 in
+            --xsd|-s)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --xsd|-s"
+                fi
+                xsdpath=$1
+                ;;
+            --xml|-x)
+                shift
+                if [ -z $1 ] ; then
+                    apperror "Incomplete argument: --xml|-x"
+                fi
+                xmlpath=$1
+                ;;
+            *)
+                apperror "Invalid arguments: $1"
+                ;;
+        esac
+        shift
+    done
+}
+
+appargs $@
+
+[ -e "${xmlpath}" ] || apperror "XML path '${xmlpath}' not exists"
+[ ! -d "${xmlpath}" ] && [ -z "${xsdpath}" ] && xsdpath="${xmlpath}.xsd"
+[ ! -d "${xmlpath}" ] && [ ! -e $(dirname ${xsdpath}) ] && apperror "XSD '${xsdpath}' cannot create"
+
+if [ -d "${xmlpath}" ]
+then
+    MODDIR=1
+    [[ ! "${xmlpath}" =~ .*\/$ ]] && xmlpath="${xmlpath}/"
+    xmlpath="${xmlpath}*.xml"
+fi
+
+shopt -s nocaseglob
+filestotal=$(ls -l ${xmlpath} | wc -l)
+filesprocessed=0
+filesok=0
+percent=0
+for xmlfile in ${xmlpath}
+do
+    appprogress "# ${xmlfile}" "${percent}"
+    ((MODDIR)) && xsdpath="${xmlfile}.xsd"
+    java -jar "${APPLIBXML}/trang/trang.jar" "${xmlfile}" "${xsdpath}"
+    if [ $? -ne 0 ]
+    then
+        apperror "Error to create '${xsdpath}' from '${xmlfile}'" 1
+        fileserror=$((${fileserror}+1))
+    else
+        filesok=$((${filesok}+1))
+    fi
+    filesprocessed=$((${filesprocessed}+1))
+    percent=$((${filesprocessed}*100/${filestotal}))
+done
+appprogress "100"
+shopt -u nocaseglob
+
+[ ${filesok} -ne 0 ] && appnotify "${filesok}/${filestotal} schemas xsd created"
