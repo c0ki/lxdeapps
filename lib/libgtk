@@ -17,7 +17,8 @@ then
 
     function apperror {
         applogger "[ERROR] ${1}"
-        ((MODQUIET)) && ! (($2)) && exit 1
+        ((MODQUIET)) && !(($2)) && exit 1
+        ((MODQUIET)) && return
         notify-send --icon="error" "${APP}" "$1"
         !(($2)) && exit 1
     }

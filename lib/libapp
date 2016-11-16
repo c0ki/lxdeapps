@@ -10,7 +10,11 @@ MODGUI=0
 [ -z ${APPDIR} ] && APPDIR=$(dirname $(readlink -f "$0"))
 [ -z ${APPICON} ] && APPICON="${APPDIR}/${APPCMD}.png"
 [ -z ${APPUSAGE} ] && APPUSAGE="Usage: ${APPCMD}"
-APPUSAGE="${APPUSAGE} ([-v|--verbose] [-q|--quiet])"
+APPUSAGE="${APPUSAGE} ([-v|--verbose] [-q|--quiet] [-c|--console])"
+
+for arg in $@; do
+    [[ ${arg} == "--console" || ${arg} == "-c" ]] && MODGUI=0
+done
 
 function appargs {
     unusedargs=()
@@ -21,6 +25,9 @@ function appargs {
                 ;;
             --quiet|-q)
                 MODQUIET=1
+                ;;
+            --console|-c)
+                MODGUI=0
                 ;;
             --help|-h)
                 echo -e "\e[1;35m"
@@ -43,7 +50,8 @@ function appargscustom {
 
 function apperror {
     applogger "[ERROR] ${1}"
-    ((MODQUIET)) && ! (($2)) && exit 1
+    ((MODQUIET)) && !(($2)) && exit 1
+    ((MODQUIET)) && return
     echo -ne "\e[0;31m" 1>&2
     echo -ne "\t-> ${1}" 1>&2
     echo -e "\e[0m" 1>&2
