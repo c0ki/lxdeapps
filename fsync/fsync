@@ -89,6 +89,11 @@ do
 done
 IFS=$OLDIFS
 
+# Sort files lines
+[ -s ${srcfile} ] && sort ${srcfile} -o ${srcfile}
+[ -s ${recentsfile} ] && sort ${recentsfile} -o ${recentsfile}
+[ -s ${destfile} ] && sort ${destfile} -o ${destfile}
+
 #echo "Sources files"
 #cat $srcfile
 #echo "====================="
@@ -115,12 +120,21 @@ then
     files=$(appchoice "Some files are not synced on all\nCheck to sync them" "${content[@]}")
     if [ ! -z "${files}" ]
     then
+        total=$(grep -o "|" <<< "${files}" | wc -l)
+        processed=0
+        failed=0
+        percent=0
         OLDIFS=$IFS;IFS="|"
         for file in ${files}
         do
+            appprogress "# ${file}" "${percent}"
             rsync -tzur "${dest}${file}" "${src}$(dirname $file})"
+            [ $? -ne 0 ] && failed=$((${failed}+1))
+            processed=$((${processed}+1))
+            percent=$((${processed}*100/${total}))
         done
         IFS=$OLDIFS
+        appprogress "100"
     fi
 fi
 
