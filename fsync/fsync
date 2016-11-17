@@ -39,18 +39,34 @@ function appargscustom {
 appargs "$@"
 
 [ -z "${src}" ] && src=$(appgetdir "Select directory to sync")
+
+# Sync via samba
+mountdir=
+if [[ "${src}" =~ ^smb:// ]]
+then
+    option=
+    [[ "${src}" =~ ^smb://([^/]*)@(.*)$ ]] && option="username=${BASH_REMATCH[1]}," && src="//${BASH_REMATCH[2]}"
+    [[ "${option}" =~ ^(.*):(.*)$ ]] && option="${BASH_REMATCH[1]},password=${BASH_REMATCH[2]}"
+
+    smbsrc="${src}"
+    smbsrcdir=$(dirname "${smbsrc}")
+    smbsrcfile=$(basename "${smbsrc}")
+    mountdir=$(mktemp -d)
+    src="${mountdir}/${smbsrcfile}"
+    sudo mount -t cifs "${smbsrcdir}" "${mountdir}" -o ${option}file_mode=0777,dir_mode=0777
+fi
+
 [ -e "${src}" ] || apperror "Source path '${src}' not exists"
 
 [ -z "${dest}" ] && dest=$(appgetdir "Select destination directory")
 [ -e "${dest}" ] || apperror "Destination path '${dest}' not exists"
-
-#src="smb://192.168.10.201/fichiers$/_Decalog/R&D/e-sidoc/"
 
 [ -d "${src}" ] && [[ ! "${src}" =~ .*\/$ ]] && src="${src}/"
 [[ ! "${dest}" =~ .*\/$ ]] && dest="${dest}/"
 
 appinfo "Synchronization from '${src}' to '${dest}'"
 
+# TODO add progress bar
 resultfiles=`rsync -vv -tzur "${src}" "${dest}" | tail -n+3 | head -n-4`
 
 recentsfile=$(tempfile)
@@ -60,16 +76,16 @@ destfile=$(tempfile)
 OLDIFS=$IFS;IFS=$'\n'
 for result in ${resultfiles}
 do
-  filename=${result/ is newer/}
-  filename=${filename/ is uptodate/}
-  echo "${filename}" >> ${srcfile}
-  [[ "${result}" =~ .*\ is\ newer ]] && echo "${filename}" >> ${recentsfile}
+    filename=${result/ is newer/}
+    filename=${filename/ is uptodate/}
+    echo "${filename}" >> ${srcfile}
+    [[ "${result}" =~ .*\ is\ newer ]] && echo "${filename}" >> ${recentsfile}
 done
 
 for file in $(find "${dest}" -type f)
 do
-  filerelative=${file#$dest}
-  grep -Fxq "${filerelative}" ${srcfile} || echo "${filerelative}" >> ${destfile}
+    filerelative=${file#$dest}
+    grep -Fxq "${filerelative}" ${srcfile} || echo "${filerelative}" >> ${destfile}
 done
 IFS=$OLDIFS
 
@@ -82,32 +98,34 @@ IFS=$OLDIFS
 #echo "File no exists"
 #cat $destfile
 
-if [ -s ${recentsfile} ] || [ -s ${destfile} ]
+if ([ -s ${recentsfile} ] || [ -s ${destfile} ])
 then
-  content=()
-  OLDIFS=$IFS;IFS=$'\n'
-  for file in $(cat ${recentsfile})
-  do
-    content+=("FALSE" "${file}" "> ${file}")
-  done
-  for file in $(cat ${destfile})
-  do
-    content+=("FALSE" "${file}" "! ${file}")
-  done
-  IFS=$OLDIFS
-
-  files=$(appchoice "Some files are not synced on all\nCheck to sync them" "${content[@]}")
-  if [ ! -z "${files}" ]
-  then
-    OLDIFS=$IFS;IFS="|"
-    for file in ${files}
+    content=()
+    OLDIFS=$IFS;IFS=$'\n'
+    for file in $(cat ${recentsfile})
     do
-      rsync -tzur "${dest}${file}" "${src}$(dirname $file})"
+        content+=("FALSE" "${file}" "> ${file}")
+    done
+    for file in $(cat ${destfile})
+    do
+        content+=("FALSE" "${file}" "! ${file}")
     done
     IFS=$OLDIFS
-  fi
+
+    files=$(appchoice "Some files are not synced on all\nCheck to sync them" "${content[@]}")
+    if [ ! -z "${files}" ]
+    then
+        OLDIFS=$IFS;IFS="|"
+        for file in ${files}
+        do
+            rsync -tzur "${dest}${file}" "${src}$(dirname $file})"
+        done
+        IFS=$OLDIFS
+    fi
 fi
 
-rm ${recentsfile} ${srcfile} ${destfile}
+[ ! -z "${mountdir}" ] && sudo umount "${mountdir}"
+
+rm -rf ${recentsfile} ${srcfile} ${destfile} ${mountdir}
 
 appnotify "Sync success"
