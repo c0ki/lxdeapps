@@ -39,7 +39,7 @@ function appargscustom {
     done
 }
 
-appargs $@
+appargs "$@"
 
 [ -e "${xmlpath}" ] || apperror "XML path '${xmlpath}' not exists"
 [ ! -d "${xmlpath}" ] && [ -z "${xsdpath}" ] && xsdpath="${xmlpath}.xsd"

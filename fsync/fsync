@@ -36,7 +36,7 @@ function appargscustom {
     done
 }
 
-appargs $@
+appargs "$@"
 
 [ -z "${src}" ] && src=$(appgetdir "Select directory to sync")
 [ -e "${src}" ] || apperror "Source path '${src}' not exists"

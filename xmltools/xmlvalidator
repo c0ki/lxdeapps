@@ -43,7 +43,7 @@ function appargscustom {
     done
 }
 
-appargs $@
+appargs "$@"
 
 [ -e "${xsdpath}" ] || apperror "XSD schema not exists (${xsdpath})"
 [ -e "${xmlpath}" ] || apperror "XML file not exists (${xmlpath})"

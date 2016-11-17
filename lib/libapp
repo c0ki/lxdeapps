@@ -19,7 +19,7 @@ done
 function appargs {
     unusedargs=()
     while [ $# -ne 0 ] ; do
-        case $1 in
+        case "$1" in
             --verbose|-v)
                 MODVERBOSE=1
                 ;;
@@ -41,7 +41,7 @@ function appargs {
         esac
         shift
     done
-    [ ${#unusedargs[@]} -ne 0 ] && appargscustom ${unusedargs[@]}
+    [ ${#unusedargs[@]} -ne 0 ] && appargscustom "${unusedargs[@]}"
 }
 
 function appargscustom {
