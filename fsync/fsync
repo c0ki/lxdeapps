@@ -98,7 +98,7 @@ IFS=$OLDIFS
 #echo "File no exists"
 #cat $destfile
 
-if ([ -s ${recentsfile} ] || [ -s ${destfile} ])
+if [ -s ${recentsfile} ] || [ -s ${destfile} ]
 then
     content=()
     OLDIFS=$IFS;IFS=$'\n'
