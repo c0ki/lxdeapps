@@ -5,7 +5,7 @@ APPDIR=$(dirname $(readlink -f "$0"))
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-APP="xml2xsd"
+APP="Xml2Xsd"
 APPUSAGE="${APPUSAGE} -x|--xml xmlpath -s|--xsd xsdpath\n${APPUSAGE} -x|--xml xmldirectory"
 APPICON="emblem-documents-symbolic"
 APPLIBXML="${APPDIR}/libxml"

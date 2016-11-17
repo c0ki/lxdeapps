@@ -5,7 +5,7 @@ APPDIR=$(dirname $(readlink -f "$0"))
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-APP="xmlvalidator"
+APP="XmlValidator"
 APPUSAGE="${APPUSAGE} (-1.1|--xsd1.1) -s|--xsd xsdpath -x|--xml xmlpath"
 APPICON="emblem-documents-symbolic"
 APPLIBXML="${APPDIR}/libxml"
