@@ -85,6 +85,7 @@ function appprogress {
     while [ $# -ne 0 ]
     do
         text="${text}\t${1}"
+        [[ "$1" == "pulsate" ]] && text="Running..." && break
         [[ "${1}" =~ ^[0-9]+$ ]] && text="${text}%"
         [[ "${1}" == "100" ]] && text=
         shift

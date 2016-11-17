@@ -52,9 +52,11 @@ then
     PROGRESSBAR=0
     function appprogress {
         ((MODQUIET)) && return
+        option=
+        [[ "$1" == "pulsate" ]] && option="--pulsate" && shift
         if ! ((PROGRESSBAR))
         then
-            exec 3> >(zenity --progress --window-icon="${APPICON}" --title="${APP}" --percentage=0 --auto-close 2>/dev/null)
+            exec 3> >(zenity --progress --window-icon="${APPICON}" --title="${APP}" --percentage=0 --auto-close ${option} 2>/dev/null)
             PROGRESSBAR=1
         fi
         while [ $# -ne 0 ]
