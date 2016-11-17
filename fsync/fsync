@@ -66,8 +66,10 @@ fi
 
 appinfo "Synchronization from '${src}' to '${dest}'"
 
-# TODO add progress bar
+# TODO set current sync file on progress bar
+appprogress "pulsate" "# Sync ${src} >> ${dest}" "0"
 resultfiles=`rsync -vv -tzur "${src}" "${dest}" | tail -n+3 | head -n-4`
+appprogress "100"
 
 recentsfile=$(tempfile)
 srcfile=$(tempfile)
