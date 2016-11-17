@@ -13,23 +13,23 @@ dest=
 
 function appargscustom {
     while [ $# -ne 0 ] ; do
-        case $1 in
+        case "$1" in
             --source|-s)
                 shift
-                if [ -z $1 ] ; then
+                if [ -z "$1" ] ; then
                     apperror "Incomplete argument: --source|-s"
                 fi
-                src=$1
+                src="$1"
                 ;;
             --destination|-d)
                 shift
-                if [ -z $1 ] ; then
+                if [ -z "$1" ] ; then
                     apperror "Incomplete argument: --destination|-d"
                 fi
-                dest=$1
+                dest="$1"
                 ;;
             *)
-                apperror "Invalid arguments: $1"
+                apperror "Invalid arguments: '$1'"
                 ;;
         esac
         shift

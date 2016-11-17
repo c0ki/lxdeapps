@@ -17,26 +17,26 @@ xsdversion="1.0"
 
 function appargscustom {
     while [ $# -ne 0 ] ; do
-        case $1 in
+        case "$1" in
             --xsd|-s)
                 shift
-                if [ -z $1 ] ; then
+                if [ -z "$1" ] ; then
                     apperror "Incomplete argument: --xsd|-s"
                 fi
-                xsdpath=$1
+                xsdpath="$1"
                 ;;
             --xml|-x)
                 shift
-                if [ -z $1 ] ; then
+                if [ -z "$1" ] ; then
                     apperror "Incomplete argument: --xml|-x"
                 fi
-                xmlpath=$1
+                xmlpath="$1"
                 ;;
             --xsd1.1|-1.1)
                 xsdversion="1.1"
                 ;;
             *)
-                apperror "Invalid arguments: $1"
+                apperror "Invalid arguments: '$1'"
                 ;;
         esac
         shift
