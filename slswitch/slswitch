@@ -21,10 +21,11 @@ do
 done
 
 screens_connected=`xrandr | grep " connected" | cut -d' ' -f1`
+screens_connected=" ${screens_connected} "
 screens_connected_order=
 for screen in ${order}
 do
-    [[ ${screens_connected} =~ .*${screen}.* ]] && screens_connected_order="${screens_connected_order} ${screen}"
+    [[ ${screens_connected} =~ .*[[:space:]]${screen}[[:space:]].* ]] && screens_connected_order="${screens_connected_order} ${screen}"
 done
 for screen in ${screens_connected}
 do
