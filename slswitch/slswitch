@@ -3,7 +3,7 @@
 APP="SLswitch"
 APPDIR=$(dirname $(readlink -f "$0"))
 
-user=`who | grep "(:"`
+user=`who | grep "(:" | head -n1`
 username=`echo "${user}" | cut -d' ' -f1`
 display=`echo "${user}" | cut -d'(' -f2 | cut -d')' -f1`
 
