@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+SCRIPTPATH="${0}"
+[ ${SCRIPTPATH} = 'bash' ] || [ ${SCRIPTPATH} = '/bin/bash' ] && SCRIPTPATH="${BASH_SOURCE}"
+
+APPDIR=$(dirname $(readlink -f "${SCRIPTPATH}"))
+
+source ${APPDIR}/lib/libapp
+
+APP="palias"
+APPUSAGE="${APPUSAGE} project action"
+PROJECTSDIR="/data/"
+
+project=
+action=
+
+function appargscustom {
+    project="$1"
+    action=$2
+}
+
+appargs "$@"
+
+[ -z "${project}" ] && return $(apperror "Project name is mandatory" 1)
+projectpath="${PROJECTSDIR}${project}/"
+[ -d "${projectpath}" ] || return $(apperror "Project '${project}' not exists" 1)
+[ -z "${action}" ] && action="dir"
+
+case "${action}" in
+    dir)
+        cd "${projectpath}"
+        ;;
+    start)
+        [ -e "resources/docker/docker-compose.yml" ] || apperror "No configuration into ${projectpath}resources/docker/docker-compose.yml"
+        docker-compose -f ${projectpath}resources/docker/docker-compose.yml -p ${project} build
+        docker-compose -f ${projectpath}resources/docker/docker-compose.yml -p ${project} up
+        ;;
+    *)
+        return $(apperror "Invalid action: '$2'" 1)
+        ;;
+esac
