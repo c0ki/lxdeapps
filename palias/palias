@@ -13,10 +13,14 @@ PROJECTSDIR="/data/"
 
 project=
 action=
+args=
 
 function appargscustom {
-    project="$1"
-    action=$2
+    project="${1}"
+    shift
+    action="${1}"
+    shift
+    args="$@"
 }
 
 appargs "$@"
@@ -31,9 +35,26 @@ case "${action}" in
         cd "${projectpath}"
         ;;
     start)
-        [ -e "resources/docker/docker-compose.yml" ] || apperror "No configuration into ${projectpath}resources/docker/docker-compose.yml"
-        docker-compose -f ${projectpath}resources/docker/docker-compose.yml -p ${project} build
-        docker-compose -f ${projectpath}resources/docker/docker-compose.yml -p ${project} up
+        [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
+        docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" build
+        docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" up
+        ;;
+    cmd|command)
+        [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
+        container_name=$(echo $args | cut -d' ' -f1)
+        if [ ! -z "${container_name}" ]
+        then
+            container_exists=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | grep "${container_name}" | wc -l)
+            [ ${container_exists} -ne 1 ] && container_name=
+        fi
+        if [ -z "${container_name}" ]
+        then
+            container_name=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | tail -n+3 | head -n1 | cut -d' ' -f1)
+        fi
+        container_running=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | grep "${container_name}" | grep " Up " | wc -l)
+        [ ${container_running} -ne 1 ] && return $(apperror "Container '${container_name}' not running")
+
+        docker exec -it ${container_name} ${args}
         ;;
     *)
         return $(apperror "Invalid action: '$2'" 1)
