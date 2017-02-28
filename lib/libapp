@@ -3,13 +3,13 @@
 MODVERBOSE=0
 MODQUIET=0
 MODGUI=0
-[ ! -z $DISPLAY ] && MODGUI=1
+[ ! -z "${DISPLAY}" ] && MODGUI=1
 
-[ -z ${APP} ] && APP="Noname"
-[ -z ${APPCMD} ] && APPCMD=$(basename "$0")
-[ -z ${APPDIR} ] && APPDIR=$(dirname $(readlink -f "$0"))
-[ -z ${APPICON} ] && APPICON="${APPDIR}/${APPCMD}.png"
-[ -z ${APPUSAGE} ] && APPUSAGE="Usage: ${APPCMD}"
+[ -z "${APP}" ] && APP="Noname"
+[ -z "${APPCMD}" ] && APPCMD=$(basename "$0")
+[ -z "${APPDIR}" ] && APPDIR=$(dirname $(readlink -f "$0"))
+[ -z "${APPICON}" ] && APPICON="${APPDIR}/${APPCMD}.png"
+[ -z "${APPUSAGE}" ] && APPUSAGE="Usage: ${APPCMD}"
 APPUSAGE="${APPUSAGE} ([-v|--verbose] [-q|--quiet] [-c|--console])"
 
 for arg in $@; do
@@ -50,12 +50,13 @@ function appargscustom {
 
 function apperror {
     applogger "[ERROR] ${1}"
-    ((MODQUIET)) && !(($2)) && exit 1
-    ((MODQUIET)) && return
+    ((MODQUIET)) && [ -z "${2}" ] || [ "${2}" -eq 0 ] && exit 1
+    ((MODQUIET)) && return 1
     echo -ne "\e[0;31m" 1>&2
     echo -ne "\t-> ${1}" 1>&2
     echo -e "\e[0m" 1>&2
-    !(($2)) && exit 1
+    [ -z "${2}" ] || [ "${2}" -eq 0 ] && exit 1
+    return 1
 }
 
 function appnotify {
@@ -75,7 +76,7 @@ function appinfo {
 }
 
 function applogger {
-    [ ! -z ${APPLOGFILE} ] && [ -f ${APPLOGFILE} ] && echo -e "$(date +"%Y-%m-%d %H:%M:%S") ${1}" >> ${APPLOGFILE}
+    [ ! -z "${APPLOGFILE}" ] && [ -f "${APPLOGFILE}" ] && echo -e "$(date +"%Y-%m-%d %H:%M:%S") ${1}" >> ${APPLOGFILE}
 }
 
 function appprogress {
