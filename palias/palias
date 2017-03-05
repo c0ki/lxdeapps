@@ -11,6 +11,8 @@ APP="palias"
 APPUSAGE="${APPUSAGE} project action"
 PROJECTSDIR="/data/"
 
+current_dir=$(pwd)
+
 project=
 action=
 args=
@@ -33,25 +35,28 @@ projectpath="${PROJECTSDIR}${project}/"
 case "${action}" in
     dir)
         cd "${projectpath}"
+        return 0
         ;;
     start)
         [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
-        docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" build
-        docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" up
+        cd "${projectpath}resources/docker/"
+        docker-compose -p "${project}" build
+        docker-compose -p "${project}" up
         ;;
     cmd|command)
         [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
+        cd "${projectpath}resources/docker/"
         container_name=$(echo $args | cut -d' ' -f1)
         if [ ! -z "${container_name}" ]
         then
-            container_exists=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | grep "${container_name}" | wc -l)
+            container_exists=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | wc -l)
             [ ${container_exists} -ne 1 ] && container_name=
         fi
         if [ -z "${container_name}" ]
         then
-            container_name=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | tail -n+3 | head -n1 | cut -d' ' -f1)
+            container_name=$(docker-compose -p "${project}"  ps 2>/dev/null | tail -n+3 | head -n1 | cut -d' ' -f1)
         fi
-        container_running=$(docker-compose -p "${project}" -f "${projectpath}resources/docker/docker-compose.yml" ps 2>/dev/null | grep "${container_name}" | grep " Up " | wc -l)
+        container_running=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | grep " Up " | wc -l)
         [ ${container_running} -ne 1 ] && return $(apperror "Container '${container_name}' not running")
 
         docker exec -it ${container_name} ${args}
@@ -60,3 +65,5 @@ case "${action}" in
         return $(apperror "Invalid action: '$2'" 1)
         ;;
 esac
+
+cd "${current_dir}"
