@@ -50,12 +50,19 @@ case "${action}" in
         if [ ! -z "${container_name}" ]
         then
             container_exists=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | wc -l)
-            [ ${container_exists} -ne 1 ] && container_name=
+            if [ ${container_exists} -eq 1 ]
+            then
+                container_name=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | cut -d' ' -f1)
+                args=$(echo $args | cut -d' ' -f2-)
+            else
+                container_name=
+            fi
         fi
         if [ -z "${container_name}" ]
         then
             container_name=$(docker-compose -p "${project}"  ps 2>/dev/null | tail -n+3 | head -n1 | cut -d' ' -f1)
         fi
+        appinfo "${container_name}: Execute '${args}'"
         container_running=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | grep " Up " | wc -l)
         [ ${container_running} -ne 1 ] && return $(apperror "Container '${container_name}' not running")
 
