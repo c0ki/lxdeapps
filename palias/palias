@@ -43,33 +43,19 @@ case "${action}" in
         docker-compose -p "${project}" build
         docker-compose -p "${project}" up
         ;;
-    cmd|command)
+    run|cmd|command)
         [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
         cd "${projectpath}resources/docker/"
         container_name=$(echo $args | cut -d' ' -f1)
-        if [ ! -z "${container_name}" ]
-        then
-            container_exists=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | wc -l)
-            if [ ${container_exists} -eq 1 ]
-            then
-                container_name=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | cut -d' ' -f1)
-                args=$(echo $args | cut -d' ' -f2-)
-            else
-                container_name=
-            fi
-        fi
-        if [ -z "${container_name}" ]
-        then
-            container_name=$(docker-compose -p "${project}"  ps 2>/dev/null | tail -n+3 | head -n1 | cut -d' ' -f1)
-        fi
-        appinfo "${container_name}: Execute '${args}'"
-        container_running=$(docker-compose -p "${project}" ps 2>/dev/null | grep "${container_name}" | grep " Up " | wc -l)
-        [ ${container_running} -ne 1 ] && return $(apperror "Container '${container_name}' not running")
+        [ -z "${container_name}" ] && return $(apperror "Container name is mandatory")
+        args=$(echo $args | cut -d' ' -f2-)
 
-        docker exec -it ${container_name} ${args}
+        appinfo "${container_name}: Execute '${args}'"
+
+        docker-compose -p "${project}" run "${container_name}" ${args}
         ;;
     *)
-        return $(apperror "Invalid action: '$2'" 1)
+        return $(apperror "Invalid action: '${action}'" 1)
         ;;
 esac
 
