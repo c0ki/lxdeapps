@@ -13,7 +13,8 @@ export DISPLAY=${display}.0
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-order=" eDP1 DP1 HDMI1 HDMI2 DVI-I-2 DVI-I-1 "
+order=" DVI-I-2-1 DVI-I-1-1 HDMI1 HDMI2 eDP1 DP1 DVI-I-2 DVI-I-1 "
+#order=" DVI-I-2-1 DVI-I-1-1 eDP1 DP1 HDMI1 HDMI2 DVI-I-2 DVI-I-1 "
 screens_disconnected=`xrandr | grep "disconnected" | cut -d' ' -f1`
 for screen in ${screens_disconnected}
 do
@@ -38,9 +39,11 @@ do
     args="${args} --output ${screen} --off"
 done
 
+screens_connected_num=0
 rightof=
 for screen in ${screens_connected_order}
 do
+    screens_connected_num=$((${screens_connected_num}+1))
     args="${args} --output ${screen} --auto --rotate normal"
     if [ ${rightof} ]
     then
@@ -51,10 +54,16 @@ do
     rightof=${screen}
 done
 
-appinfo "Init screen(s)"
+appinfo "Init screen(s) to order${screens_connected_order}"
 xrandr $args
+
+# Set lxpanel monitor
+monitor=0
+[[ ${screens_connected_num} -ne 1 ]] && monitor=1
+appinfo "lxpanel to monitor ${monitor}"
+sed -i'.sav' -e "s/  monitor=.*/  monitor=${monitor}/g" ~/.config/lxpanel/Lubuntu/panels/panel
 
 appinfo "Restart lxpanel"
 lxpanelctl restart
 
-appnotify "${screens_connected_order}"
+appnotify "${screens_connected_order} / ${monitor}"
