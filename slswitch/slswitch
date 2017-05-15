@@ -13,7 +13,7 @@ export DISPLAY=${display}.0
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-order=" DVI-I-2-1 DVI-I-1-1 HDMI1 HDMI2 eDP1 DP1 DVI-I-2 DVI-I-1 "
+order=" eDP1 DVI-I-2-1 DVI-I-1-1 HDMI1 HDMI-1 HDMI2 HDMI-2 eDP-1 DP1 DVI-I-2 DVI-I-1 "
 #order=" DVI-I-2-1 DVI-I-1-1 eDP1 DP1 HDMI1 HDMI2 DVI-I-2 DVI-I-1 "
 screens_disconnected=`xrandr | grep "disconnected" | cut -d' ' -f1`
 for screen in ${screens_disconnected}
@@ -59,9 +59,9 @@ xrandr $args
 
 # Set lxpanel monitor
 monitor=0
-[[ ${screens_connected_num} -ne 1 ]] && monitor=1
+[[ ${screens_connected_num} -gt 2 ]] && monitor=1
 appinfo "lxpanel to monitor ${monitor}"
-sed -i'.sav' -e "s/  monitor=.*/  monitor=${monitor}/g" ~/.config/lxpanel/Lubuntu/panels/panel
+sed -i -e "s/  monitor=.*/  monitor=${monitor}/g" ~/.config/lxpanel/Lubuntu/panels/panel
 
 appinfo "Restart lxpanel"
 lxpanelctl restart
