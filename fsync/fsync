@@ -6,20 +6,20 @@ source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
 APP="Fsync"
-APPUSAGE="${APPUSAGE} [-s|--source] sourcepath [-d|--destintaion] destinationpath"
+APPUSAGE="${APPUSAGE} [-l|--local] localpath [-d|--destintaion] destinationpath --auto"
 
-src=
+local=
 dest=
 
 function appargscustom {
     while [ $# -ne 0 ] ; do
         case "$1" in
-            --source|-s)
+            --local|-l)
                 shift
                 if [ -z "$1" ] ; then
-                    apperror "Incomplete argument: --source|-s"
+                    apperror "Incomplete argument: --local|-l"
                 fi
-                src="$1"
+                local="$1"
                 ;;
             --destination|-d)
                 shift
@@ -27,6 +27,10 @@ function appargscustom {
                     apperror "Incomplete argument: --destination|-d"
                 fi
                 dest="$1"
+                ;;
+            --auto)
+                local=$(pwd)
+                dest=$(cat .fsync 2>/dev/null)
                 ;;
             *)
                 apperror "Invalid arguments: '$1'"
@@ -38,110 +42,49 @@ function appargscustom {
 
 appargs "$@"
 
-[ -z "${src}" ] && src=$(appgetdir "Select directory to sync")
+[ -z "${local}" ] && local=$(appgetdir "Select directory to sync")
+[ -z "${local}" ] && apperror "Exit"
+[ -e "${local}" ] || apperror "Local path '${local}' not exists"
+
+[ -z "${dest}" ] && dest=$(appgetdir "Select destination directory")
+[ -z "${dest}" ] && apperror "Exit"
 
 # Sync via samba
 mountdir=
-if [[ "${src}" =~ ^smb:// ]]
+if [[ "${dest}" =~ ^smb:// ]]
 then
     option=
-    [[ "${src}" =~ ^smb://([^/]*)@(.*)$ ]] && option="username=${BASH_REMATCH[1]}," && src="//${BASH_REMATCH[2]}"
+    [[ "${dest}" =~ ^smb://([^/]*)@(.*)$ ]] && option="username=${BASH_REMATCH[1]}," && dest="//${BASH_REMATCH[2]}"
     [[ "${option}" =~ ^(.*):(.*)$ ]] && option="${BASH_REMATCH[1]},password=${BASH_REMATCH[2]}"
 
-    smbsrc="${src}"
-    smbsrcdir=$(dirname "${smbsrc}")
-    smbsrcfile=$(basename "${smbsrc}")
+    smbdest="${dest}"
+    smbdestdir=$(dirname "${smbdest}")
+    smbdestfile=$(basename "${smbdest}")
     mountdir=$(mktemp -d)
-    src="${mountdir}/${smbsrcfile}"
-    sudo mount -t cifs "${smbsrcdir}" "${mountdir}" -o ${option}file_mode=0777,dir_mode=0777
+    dest="${mountdir}/${smbdestfile}"
+    sudo mount -t cifs "${smbdestdir}" "${mountdir}" -o ${option}file_mode=0777,dir_mode=0777
 fi
 
-[ -e "${src}" ] || apperror "Source path '${src}' not exists"
-
-[ -z "${dest}" ] && dest=$(appgetdir "Select destination directory")
 [ -e "${dest}" ] || apperror "Destination path '${dest}' not exists"
 
-[ -d "${src}" ] && [[ ! "${src}" =~ .*\/$ ]] && src="${src}/"
+[ -d "${local}" ] && [[ ! "${local}" =~ .*\/$ ]] && local="${local}/"
 [[ ! "${dest}" =~ .*\/$ ]] && dest="${dest}/"
 
-appinfo "Synchronization from '${src}' to '${dest}'"
+rsynclocalopt=
+rsyncdestopt=
+[ -e "${local}excludes.local" ] && rsynclocalopt="--exclude-from=excludes.local"
+[ -e "${dest}excludes.local" ] && rsyncdestopt="--exclude-from=excludes.local"
 
-# TODO set current sync file on progress bar
-appprogress "pulsate" "# Sync ${src} >> ${dest}" "0"
-resultfiles=`rsync -vv -tzur "${src}" "${dest}" | tail -n+3 | head -n-4`
+appinfo "Synchronization from '${local}' to '${dest}'"
+appprogress "pulsate" "# Sync ${local} >> ${dest}" "0"
+rsync -zur ${rsynclocalopt} --exclude=.fsync "${local}" "${dest}"
 appprogress "100"
 
-recentsfile=$(tempfile)
-srcfile=$(tempfile)
-destfile=$(tempfile)
-
-OLDIFS=$IFS;IFS=$'\n'
-for result in ${resultfiles}
-do
-    filename=${result/ is newer/}
-    filename=${filename/ is uptodate/}
-    echo "${filename}" >> ${srcfile}
-    [[ "${result}" =~ .*\ is\ newer ]] && echo "${filename}" >> ${recentsfile}
-done
-
-for file in $(find "${dest}" -type f)
-do
-    filerelative=${file#$dest}
-    grep -Fxq "${filerelative}" ${srcfile} || echo "${filerelative}" >> ${destfile}
-done
-IFS=$OLDIFS
-
-# Sort files lines
-[ -s ${srcfile} ] && sort ${srcfile} -o ${srcfile}
-[ -s ${recentsfile} ] && sort ${recentsfile} -o ${recentsfile}
-[ -s ${destfile} ] && sort ${destfile} -o ${destfile}
-
-#echo "Sources files"
-#cat $srcfile
-#echo "====================="
-#echo "File more recent"
-#cat $recentsfile
-#echo "====================="
-#echo "File no exists"
-#cat $destfile
-
-if [ -s ${recentsfile} ] || [ -s ${destfile} ]
-then
-    content=()
-    OLDIFS=$IFS;IFS=$'\n'
-    for file in $(cat ${recentsfile})
-    do
-        content+=("FALSE" "${file}" "> ${file}")
-    done
-    for file in $(cat ${destfile})
-    do
-        content+=("FALSE" "${file}" "! ${file}")
-    done
-    IFS=$OLDIFS
-
-    files=$(appchoice "Some files are not synced on all\nCheck to sync them" "${content[@]}")
-    if [ ! -z "${files}" ]
-    then
-        total=$(grep -o "|" <<< "${files}" | wc -l)
-        processed=0
-        failed=0
-        percent=0
-        OLDIFS=$IFS;IFS="|"
-        for file in ${files}
-        do
-            appprogress "# ${file}" "${percent}"
-            rsync -tzur "${dest}${file}" "${src}$(dirname $file})"
-            [ $? -ne 0 ] && failed=$((${failed}+1))
-            processed=$((${processed}+1))
-            percent=$((${processed}*100/${total}))
-        done
-        IFS=$OLDIFS
-        appprogress "100"
-    fi
-fi
+appinfo "Synchronization from '${dest}' to '${local}'"
+appprogress "pulsate" "# Sync ${dest} >> ${local}" "0"
+rsync -zur ${rsyncdestopt} --exclude=cifs784 "${dest}" "${local}"
+appprogress "100"
 
 [ ! -z "${mountdir}" ] && sudo umount "${mountdir}"
-
-rm -rf ${recentsfile} ${srcfile} ${destfile} ${mountdir}
 
 appnotify "Sync success"
