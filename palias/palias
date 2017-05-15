@@ -52,7 +52,7 @@ case "${action}" in
 
         appinfo "${container_name}: Execute '${args}'"
 
-        docker-compose -p "${project}" run "${container_name}" ${args}
+        docker-compose -p "${project}" exec "${container_name}" ${args}
         ;;
     *)
         return $(apperror "Invalid action: '${action}'" 1)
