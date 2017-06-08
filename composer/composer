@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+SCRIPTPATH="${0}"
+[ ${SCRIPTPATH} = 'bash' ] || [ ${SCRIPTPATH} = '/bin/bash' ] && SCRIPTPATH="${BASH_SOURCE}"
+
+APPDIR=$(dirname $(readlink -f "${SCRIPTPATH}"))
+
+source ${APPDIR}/lib/libapp
+
+APP="palias"
+APPUSAGE="${APPUSAGE} project action"
+PROJECTSDIR="/data/"
+
+current_dir=$(pwd)
+
+appinfo "Current working directory: ${current_dir}"
+
+docker run --rm -v $(pwd):/app -v ${APPDIR}/.ssh:/root/.ssh local/composer $@
