@@ -8,21 +8,41 @@ APPDIR=$(dirname $(readlink -f "${SCRIPTPATH}"))
 source ${APPDIR}/lib/libapp
 
 APP="palias"
-APPUSAGE="${APPUSAGE} project action"
+APPUSAGE="${APPUSAGE} [-p|--project] project ([-a|--all]) action"
 PROJECTSDIR="/data/"
 
 current_dir=$(pwd)
 
 project=
+project_suffix=
+docker_config_file="resources/docker/docker-compose.yml"
 action=
-args=
+args=()
 
 function appargscustom {
-    project="${1}"
-    shift
-    action="${1}"
-    shift
-    args="$@"
+    while [ $# -ne 0 ] ; do
+        case "$1" in
+            --project|-p)
+                shift
+                project="${1}"
+                ;;
+            --all|-a)
+                docker_config_file="resources/docker/docker-compose-all.yml"
+                project_suffix="all"
+                ;;
+            --config|-c)
+                shift
+                docker_config_file="${1}"
+                ;;
+            *)
+                [ -z "${action}" ] || args+=("${1}")
+                [ -z "${action}" ] && action="${1}"
+                ;;
+        esac
+        shift
+    done
+
+    args="${args[@]}"
 }
 
 appargs "$@"
@@ -30,29 +50,45 @@ appargs "$@"
 [ -z "${project}" ] && return $(apperror "Project name is mandatory" 1)
 projectpath="${PROJECTSDIR}${project}/"
 [ -d "${projectpath}" ] || return $(apperror "Project '${project}' not exists" 1)
+project="${project}${project_suffix}"
+
 [ -z "${action}" ] && action="dir"
+
+[ -e "${docker_config_file}" ] || docker_config_file="${projectpath}${docker_config_file}"
+docker_config_file=$(realpath "${docker_config_file}")
+docker_config_path=$(dirname "${docker_config_file}")
 
 case "${action}" in
     dir)
         cd "${projectpath}"
         return 0
         ;;
+    build)
+        [ -e "${docker_config_file}" ] || return $(apperror "No configuration into '${docker_config_file}'")
+        cd "${docker_config_path}"
+        docker-compose -f "${docker_config_file}" -p "${project}" build --no-cache
+        ;;
     start)
-        [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
-        cd "${projectpath}resources/docker/"
-        docker-compose -p "${project}" build
-        docker-compose -p "${project}" up
+        [ -e "${docker_config_file}" ] || return $(apperror "No configuration into '${docker_config_file}'")
+        cd "${docker_config_path}"
+        docker-compose -f "${docker_config_file}" -p "${project}" build
+        docker-compose -f "${docker_config_file}" -p "${project}" up
         ;;
     run|cmd|command)
-        [ -e "${projectpath}resources/docker/docker-compose.yml" ] || return $(apperror "No configuration into '${projectpath}resources/docker/docker-compose.yml'")
-        cd "${projectpath}resources/docker/"
+        [ -e "${docker_config_file}" ] || return $(apperror "No configuration into '${docker_config_file}'")
+        cd "${docker_config_path}"
         container_name=$(echo $args | cut -d' ' -f1)
         [ -z "${container_name}" ] && return $(apperror "Container name is mandatory")
         args=$(echo $args | cut -d' ' -f2-)
 
         appinfo "${container_name}: Execute '${args}'"
 
-        docker-compose -p "${project}" exec "${container_name}" ${args}
+        docker-compose -f "${docker_config_file}" -p "${project}" exec "${container_name}" ${args}
+        ;;
+    log|logs)
+        appinfo "${container_name}: Show logs"
+        cd "${projectpath}"
+        tail -f var/logs/*.log
         ;;
     *)
         return $(apperror "Invalid action: '${action}'" 1)
