@@ -13,7 +13,7 @@ export DISPLAY=${display}.0
 source ${APPDIR}/lib/libapp
 source ${APPDIR}/lib/libgtk
 
-order=" eDP1 DVI-I-2-1 DVI-I-1-1 HDMI1 HDMI-1 HDMI2 HDMI-2 eDP-1 DP1 DVI-I-2 DVI-I-1 "
+order=" DP-1 DP1 DVI-I-2 DVI-I-1 DVI-I-2-1 DVI-I-1-1 HDMI1 HDMI-1 HDMI2 HDMI-2 eDP1 eDP-1 "
 #order=" DVI-I-2-1 DVI-I-1-1 eDP1 DP1 HDMI1 HDMI2 DVI-I-2 DVI-I-1 "
 screens_disconnected=`xrandr | grep "disconnected" | cut -d' ' -f1`
 for screen in ${screens_disconnected}
