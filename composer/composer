@@ -7,9 +7,8 @@ APPDIR=$(dirname $(readlink -f "${SCRIPTPATH}"))
 
 source ${APPDIR}/lib/libapp
 
-APP="palias"
+APP="composer"
 APPUSAGE="${APPUSAGE} project action"
-PROJECTSDIR="/data/"
 
 current_dir=$(pwd)
 
