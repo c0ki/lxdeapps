@@ -1,0 +1,230 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{default.theme}[2017/01/04 Default theme, V1.0]
+% Author: c0kinou
+\graphicspath{{/opt/lxdeapps/convert/include/themes/default/}}
+
+%% Theme image
+\attr{theme.sidebarbackground}{sidebarbg.jpg}
+\attr{theme.titlebackground}{titlebg.jpg}
+\attr{theme.topbarbackground}{topbarbg.jpg}
+
+% Colors
+\RequirePackage{xcolor}
+% theme color
+\definecolor{titlebackground}{rgb}{0.3,0.5,0.8}% 4c7fcc
+\definecolor{color0}{rgb}{0,0,0}% main default color, normally left to black
+\definecolor{color1}{rgb}{0.3,0.5,0.8}% 4c7fcc
+\definecolor{color2}{rgb}{1,1,1}
+\definecolor{theme1}{rgb}{1,1,1}
+\definecolor{theme2}{rgb}{0,0,0}
+\definecolor{color3}{rgb}{0.9,0.95,1}
+\definecolor{color4}{rgb}{1,0.75,0.5}
+\definecolor{themebackground}{rgb}{0.17,0.59,0.77}% 2d98c6
+\definecolor{defaultbackground}{rgb}{1,1,1}
+
+% headers and footers
+\RequirePackage{lastpage}
+\RequirePackage[strict]{changepage}
+
+% For document
+\@ifclassloaded{document}{
+    \RequirePackage{fancyhdr}
+    \fancypagestyle{pagestyle}{
+        \renewcommand\headrulewidth{0pt}
+        \renewcommand\footrulewidth{0pt}
+        \fancyhead[L]{
+            \textcolor{color1}{~project~}
+        }
+        \fancyhead[C]{
+            \textcolor{color1}{~title~\ifattr{subtitle}{: ~subtitle~}}
+        }
+        \fancyhead[R]{
+            \textcolor{color1}{\ifattr{version}{v~version~}}
+        }
+        \fancyfoot[L]{
+            \ifattr{institute.logo}{
+                \vspace*{-0.5cm}
+                \includegraphics[height=1cm]{\getattr{institute.logo}}
+            }
+        }
+        \fancyfoot[C]{
+            \ifattr{type}{
+                \colorbox{color4}{
+                    \hspace*{5mm}
+                    \textcolor{color1}{~type~}
+                    \hspace*{5mm}
+                }
+            }
+        }
+        \fancyfoot[R]{
+            \textcolor{color1}{Page \thepage/\pageref*{LastPage}}
+        }
+    }
+    \fancypagestyle{firstpagestyle}{%
+        \renewcommand\headrulewidth{0pt}
+        \renewcommand\footrulewidth{0pt}
+        \fancyhead[L]{}
+        \fancyhead[C]{}
+        \fancyhead[R]{}
+        \fancyfoot[L]{
+            \fontsize{9pt}{9pt}\selectfont
+            \textcolor{color1}{~institute.name~}
+            \textcolor{color1}{~institute.contact~}
+        }
+        \fancyfoot[C]{}
+        \fancyfoot[R]{}
+    }
+    \pagestyle{pagestyle}
+
+    \newsavebox\defaultsavebox
+    \newenvironment{minipageimg}[2][]{%
+       \def\imgcmd{\includegraphics[width=\wd\defaultsavebox,height=\dimexpr\ht\defaultsavebox+\dp\defaultsavebox\relax,keepaspectratio=false,#1]{#2}}%
+       \begin{lrbox}{\defaultsavebox}%
+       \begin{minipage}%
+    }{%
+       \end{minipage}
+       \end{lrbox}%
+       \sbox\defaultsavebox{\fbox{\usebox\defaultsavebox}}%
+       \mbox{\rlap{\raisebox{-\dp\defaultsavebox}{\imgcmd}}\usebox\defaultsavebox}%
+    }
+
+    \renewcommand\maketitle{
+        \thispagestyle{firstpagestyle}
+        \ifattr{institute.logo}{
+            \includegraphics[height=2.5cm]{\getattr{institute.logo}}
+        }
+        \vspace*{2cm}
+        \begin{adjustwidth}{-2cm}{}
+            \begin{minipageimg}{\getattr{theme.titlebackground}}{21cm}
+                \vspace*{2cm}
+                \begin{center}
+                    \colorbox{color1}{
+                        \hspace*{5mm}
+                        \parbox[t]{12cm}{
+                            \vspace*{0.7cm}
+                            \centering\Huge\scshape\textcolor{color2}{~title~}\par
+                            \ifattr{subtitle}{
+                                \centering\LARGE\scshape\textcolor{color2}{~subtitle~}\par
+                            }
+                            \vspace*{0.5cm}
+                            \centering\Huge\scshape\textcolor{color0}{~project~}\par
+                            \vspace*{0.7cm}
+                        }
+                        \hspace*{5mm}
+                    }
+                \end{center}
+                \vspace*{2cm}
+            \end{minipageimg}
+        \end{adjustwidth}
+        \vspace*{2cm}
+    }
+}{}
+
+% For slide
+\@ifclassloaded{slide}{
+    %% Header & footer
+    \RequirePackage[headheight=12pt,footheight=1cm]{beamerthemeboxes}
+    \addheadboxtemplate{\color{themebackground}}{\color{theme1}\tiny\quad\ifattr{project}{~project~: }{~title~}\ifattr{subtitle}{: ~subtitle~}}
+    \addheadboxtemplate{\color{themebackground}}{\def\and{; }\hfill\color{theme1}\tiny\quad ~author~\hspace{2em}}
+    \ifattr{institute.logo}{
+        \addfootboxtemplate{\color{defaultbackground}}{\hspace{2em}\includegraphics[height=1cm]{\getattr{institute.logo}}}
+    }
+    \addfootboxtemplate{\color{defaultbackground}}{\color{theme2}\hfill\insertframenumber{}/\inserttotalframenumber\hspace{2em}}
+
+    %% Sidebar
+    \RequirePackage[tab]{beamerthemesidebar}
+    \makeatletter
+      \setbeamertemplate{sidebar \beamer@sidebarside}%{sidebar theme}
+      {
+        \vspace{6em}
+        \beamer@tempdim=\beamer@sidebarwidth%
+        \advance\beamer@tempdim by -6pt%
+        \insertverticalnavigation{\beamer@sidebarwidth}%
+        \vfill
+        \ifx\beamer@sidebarside\beamer@lefttext%
+        \else%
+          \usebeamercolor{normal text}%
+          \llap{\usebeamertemplate***{navigation symbols}\hskip0.1cm}%
+          \vskip2pt%
+        \fi%
+    }%
+    \makeatother
+
+    \renewcommand\titlepage {
+        \noindent
+        \begin{adjustwidth}{-0.5cm}{-3cm}
+            \begin{adjustwidth}{0.3cm}{0.3cm}
+                \begin{minipage}{0.4\linewidth}% adapt widths of minipages to your needs
+                    \ifattr{institute.logo}{
+                        \includegraphics[height=1.5cm]{\getattr{institute.logo}}
+                    }
+                \end{minipage}%
+                \hfill%
+                \begin{minipage}{0.6\linewidth}\raggedleft
+                    \small\def\and{\par}~author~
+                \end{minipage}
+            \end{adjustwidth}
+
+            \vspace{1.5cm}
+
+            \includegraphics[width=\maxwidth,height=13em,keepaspectratio=false]{\getattr{theme.titlebackground}}
+
+            \vspace{0.3cm}
+            \begin{adjustwidth}{0.3cm}{0.3cm}
+                \tiny{~institute.name~ | ~institute.contact~}
+            \end{adjustwidth}
+
+            \begin{minipage}{\linewidth}
+                \vspace{-31em}
+                \begin{center}
+                    \colorbox{themebackground}{
+                        \hspace{5mm}
+                        \parbox[t]{0.7\linewidth}{
+                            \vspace*{0.7cm}
+                            \centering\Huge\scshape\textcolor{color2}{~title~}
+                            \ifattr{subtitle}{
+                                \vspace*{0.5cm}
+                                \centering\LARGE\scshape\textcolor{color2}{~subtitle~}
+                            }
+                            \vspace*{0.5cm}
+                            \centering\Huge\scshape\textcolor{color0}{~project~}
+                            \vspace*{0.5cm}
+                        }
+                        \hspace{5mm}
+                    }
+                \end{center}
+            \end{minipage}
+        \end{adjustwidth}
+    }
+
+    %% Add frame on section
+    \let\oldsection\section
+    \def\section#1{
+        \oldsection{#1}
+        \begin{frame}
+            \vspace{-0.33cm}
+            \begin{adjustwidth}{-0.5cm}{-0.5cm}
+            \begin{minipage}{\linewidth}
+                \includegraphics[width=\linewidth,height=5em,keepaspectratio=false]{\getattr{theme.topbarbackground}}
+                \vspace{-4.5em}
+                \begin{center}
+                    \colorbox{themebackground}{
+                        \hspace{5mm}
+                        \parbox[t]{0.5\linewidth}{
+                            \vspace{0.5cm}
+                            \centering\LARGE\textcolor{theme1}{#1}
+                            \vspace{0.5cm}
+                        }
+                        \hspace{5mm}
+                    }
+                \end{center}
+            \end{minipage}
+            \end{adjustwidth}
+        %    \tableofcontents
+        \end{frame}
+    }
+
+}{}
+
+%% end package
+\endinput

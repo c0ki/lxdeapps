@@ -1,0 +1,148 @@
+#!/bin/bash
+
+APPDIR=$(dirname $(readlink -f "$0"))
+
+source ${APPDIR}/lib/libapp
+source ${APPDIR}/lib/libgtk
+
+APP="Fconvert"
+APPUSAGE="${APPUSAGE} inputfile [-m|--meta metafile] [--model model] [--format format] [-o|--output outputfile]"
+APPFILTERSDIR="${APPDIR}/filters/"
+APPMODELSDIR="${APPDIR}/include/models/"
+
+inputfile=
+metafile=
+outputfile=
+model=
+format=
+
+function appargscustom {
+    while [ $# -ne 0 ] ; do
+        case "$1" in
+            --meta|-m)
+                shift
+                if [ -z "$1" ] ; then
+                    apperror "Incomplete argument: --meta|-m"
+                fi
+                metafile="$1"
+                ;;
+            --model)
+                shift
+                if [ -z "$1" ] ; then
+                    apperror "Incomplete argument: --model"
+                fi
+                model="$1"
+                ;;
+            --format)
+                shift
+                if [ -z "$1" ] ; then
+                    apperror "Incomplete argument: --format"
+                fi
+                format="$1"
+                ;;
+            --output|-o)
+                shift
+                if [ -z "$1" ] ; then
+                    apperror "Incomplete argument: --output|-o"
+                fi
+                outputfile="$1"
+                ;;
+            *)
+                if [ ! -z "${inputfile}" ] ; then
+                    apperror "Invalid arguments: '$1'"
+                fi
+                inputfile="$1"
+                ;;
+        esac
+        shift
+    done
+}
+
+appargs "$@"
+
+# Check source file
+[ -z "${inputfile}" ] && apperror "Input file is mandatory"
+[ -e "${inputfile}" ] || apperror "Input file '${inputfile}' not exists"
+inputfile=$(realpath "${inputfile}")
+
+# Check metafile file
+[ -z "${metafile}" ] || [ -e "${metafile}" ] || apperror "Meta file '${metafile}' not exists"
+if [ -z "${metafile}" ] ; then
+    metafile="${inputfile%.*}.yml"
+    [ -e "${metafile}" ] && appnotify "[default] Meta file: ${metafile}" || metafile=
+fi
+[ -z "${metafile}" ] || metafile=$(realpath "${metafile}")
+
+# Check model
+if [ -z "${model}" ] && [ ! -z "${metafile}" ] ; then
+    model=$(parseyaml ${metafile} model)
+fi
+[ -z "${model}" ] && apperror "Model is mandatory"
+[ -e "${APPMODELSDIR}${model}.tex" ] || apperror "Model '${model}' not exists"
+modelfile="${APPMODELSDIR}${model}.tex"
+
+# Check output file and format
+if [ -z "${outputfile}" ] && [ ! -z "${metafile}" ] ; then
+    [ -z "${format}" ] && format="pdf" && appnotify "[default] Format: ${format}"
+    version=$(parseyaml ${metafile} version)
+    [ -z "${version}" ] || version="-v${version}"
+    outputfile="${inputfile%.*}${version}.${format}" && appnotify "[default] Output file: ${outputfile}"
+fi
+[ ! -z "${outputfile}" ] && [ ! -z "${format}" ] \
+    && [ "${format}" != "${outputfile##*.}" ] && apperror "Invalid format '${format}' to output file '${outputfile}'"
+[ -z "${format}" ] && format="${outputfile##*.}"
+outputfile=$(realpath "${outputfile}")
+# Erase output file ?
+[ -e "${outputfile}" ] && appquestion "Output file '${outputfile}' exists, erase it ?"
+
+# Get slide level
+slidelevel=
+if [ "${model}" = "slide" ] ; then
+    if [ ! -z "${metafile}" ] ; then
+        slidelevel=$(parseyaml ${metafile} level)
+    fi
+    [ -z "${slidelevel}" ] && slidelevel=2 && appnotify "[default] Slide level: ${slidelevel}"
+fi
+
+# Filters
+filters=$(ls ${APPFILTERSDIR})
+
+appnotify "inputfile: ${inputfile}"
+appnotify "metafile: ${metafile}"
+appnotify "outputfile: ${outputfile}"
+appnotify "model: ${model}"
+appnotify "modelfile: ${modelfile}"
+appnotify "format: ${format}"
+appnotify "slidelevel: ${slidelevel}"
+appnotify "filters: ${filters}"
+
+# Create workfile
+workfile="$(tempfile).${APPCMD}.wip"
+# Replace image path
+currentdir=$(realpath ".")
+sed "s#(./#(${currentdir}/#g" "${inputfile}" > ${workfile}
+# Slide: Copy level X to level X+1
+if [ "${model}" = "slide" ]; then
+    prefix=$(printf '%*s\n' $slidelevel "" | tr ' ' '#')
+    sed -i "s/^\(${prefix} .*\)/\1\n#\1/g" "${workfile}"
+    ((slidelevel++))
+fi
+
+# Build pandoc command
+cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --template=${modelfile} --number-section --toc --highlight-style pygments"
+#cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --number-section --toc --highlight-style pygments"
+[ "${model}" = "slide" ] && cmd="${cmd} -t beamer --slide-level ${slidelevel}"
+for filter in ${filters}; do
+    cmd="${cmd} --filter ${APPFILTERSDIR}${filter}"
+done
+
+echo "${cmd}"
+
+export TEXINPUTS=".:${APPDIR}/include//:"
+${cmd}
+[[ $? -ne 0 ]] && fail=1
+rm "${workfile}"
+
+[[ ${fail} -ne 0 ]] && apperror "Error on convert file"
+
+appnotify "Convert success"

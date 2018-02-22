@@ -1,0 +1,19 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{filigrane}[2016/11/30 Filigrane package, V1.0]
+% Author: c0kinou
+\RequirePackage[pages=all,scale=1,angle=0,opacity=0.8]{background}
+
+%% Déclaration des options
+\DeclareOption{workinprogress}{\attr{filigrane}{En cours de rédaction}}
+\DeclareOption{wip}{\attr{filigrane}{En cours de rédaction}}
+\DeclareOption{draft}{\attr{filigrane}{Brouillon}}
+\DeclareOption{validation}{\attr{filigrane}{A valider}}
+\DeclareOption{final}{\attr{filigrane}{}}
+\ExecuteOptions{final}
+\ProcessOptions
+
+\backgroundsetup{
+    scale=8,
+    angle=45,
+    contents={~filigrane~}
+}

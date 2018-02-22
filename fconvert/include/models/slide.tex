@@ -1,0 +1,37 @@
+\documentclass[$if(fonttype)$$fonttype$,$endif$$if(documenttype)$$documenttype$,$endif$]{slide}
+
+% Metas
+$if(title)$\attr{title}{$title$}\title{$title$}$endif$
+$if(subtitle)$\attr{subtitle}{$subtitle$}$endif$
+$if(project)$\attr{project}{$project$}$endif$
+$if(date)$\attr{date}{$date$}$endif$
+$if(version)$\attr{version}{$version$}$endif$
+$if(institute)$\attr{institute}{$institute$}$endif$
+$if(author)$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\attr{author}{$for(author)$$author$$sep$ \and $endfor$}
+\attr{creator}{$for(author)$$author$$sep$ \and $endfor$}
+$endif$
+$if(validator)$\attr{validator}{$for(validator)$$validator$$sep$ \and $endfor$}$endif$
+$if(keywords)$\attr{keywords}{$for(keywords)$$keywords$$sep$ \and $endfor$}$endif$
+$if(history)$\attr{history}{$for(history)$$history$$sep$ \and $endfor$}$endif$
+$if(type)$\attr{type}{$type$}$endif$
+$if(theme)$\attr{theme}{$theme$}$endif$
+
+$if(tocdepth)$\setcounter{tocdepth}{$tocdepth$}$endif$
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+$if(toc)$
+%\begin{frame}
+%\tableofcontents
+%\end{frame}
+$endif$
+
+$body$
+
+\end{document}
