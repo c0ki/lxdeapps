@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MODVERBOSE=0
+MODFORCE=0
 MODQUIET=0
 MODGUI=0
 [ ! -z "${DISPLAY}" ] && MODGUI=1
@@ -22,6 +23,9 @@ function appargs {
         case "$1" in
             --verbose|-v)
                 MODVERBOSE=1
+                ;;
+            --force|-f)
+                MODFORCE=1
                 ;;
             --quiet|-q)
                 MODQUIET=1
@@ -50,12 +54,12 @@ function appargscustom {
 
 function apperror {
     applogger "[ERROR] ${1}"
-    ((MODQUIET)) && [ -z "${2}" ] || [ "${2}" -eq 0 ] && exit 1
+    ((MODQUIET)) && ([ -z "${2}" ] || [[ "${2}" -eq 0 ]]) && exit 1
     ((MODQUIET)) && return 1
     echo -ne "\e[0;31m" 1>&2
     echo -ne "\t-> ${1}" 1>&2
     echo -e "\e[0m" 1>&2
-    [ -z "${2}" ] || [ "${2}" -eq 0 ] && exit 1
+    ([ -z "${2}" ] || [ "${2}" -eq 0 ]) && exit 1
     return 1
 }
 
@@ -94,4 +98,45 @@ function appprogress {
     printf '%0.s ' $(seq 1 $cols)
     echo -ne "\r\e[0;33m${text}"
     echo -ne "\e[0m\r"
+}
+
+function appquestion {
+    ((MODFORCE)) && appnotify "[force] ${1} => yes" && return
+    ((MODQUIET)) && apperror "[quiet] ${1} => no"
+    while true; do
+        read -p "${1} " yn
+        case "$yn" in
+            [YyOo]*)
+                return
+                ;;
+            [Nn]*)
+                exit
+                ;;
+            *)
+            echo "Please answer yes or no"
+            ;;
+        esac
+    done
+}
+
+function parseyaml {
+   local name=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\(-\)$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\(-\)$s\([^-].*\)$s\$|\1$fs\2$fs\3|p" \
+          $1 |
+   awk -F$fs '{
+      indent = length($1)/4;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])(".")}
+         if ($2 == "-") { vn=substr(vn, 1, length(vn)-1); $2="[]" }
+         if ("'$name'" == "") { printf("%s%s=\"%s\"\n",vn, $2, $3) }
+         else if ("'$name'" == vn$2) { printf("%s", $3) }
+      }
+   }'
 }
