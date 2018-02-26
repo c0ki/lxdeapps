@@ -131,6 +131,16 @@
 \RequirePackage[export]{adjustbox}
 \RequirePackage{wrapfig}
 
+% Overwrite \begin{figure}[htbp] with \begin{figure}[H]
+\RequirePackage{float}
+\let\origfigure=\figure
+\let\endorigfigure=\endfigure
+\renewenvironment{figure}[1][]{%
+  \origfigure[H]
+}{%
+  \endorigfigure
+}
+
 \AtEndPreamble{
     \IfFileExists{~institute~.institute.sty}{\RequirePackage{~institute~.institute}}{}
     \RequirePackage{default.theme}
