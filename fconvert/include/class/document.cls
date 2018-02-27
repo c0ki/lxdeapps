@@ -90,12 +90,12 @@
         linkcolor=blue, % Couleur des liens internes.
         pdfborder={0 0 0},
     }
-    \hypersetup{pdftitle={~title~}}
-    \hypersetup{pdfsubject={~project~}}
-    \hypersetup{pdfauthor={~author~}}
-    \hypersetup{pdfcreator={~creator~}}
-    \hypersetup{pdfkeywords={~keywords~}}
-    \hypersetup{pdfproducer={~institute~}}
+    \hypersetup{pdftitle=\getattr{title}\ifattr{subtitle}{: \getattr{subtitle}}}
+    \hypersetup{pdfsubject=\getattr{project}}
+    \hypersetup{pdfauthor=\getattr{author}}
+    \hypersetup{pdfcreator=\getattr{creator}}
+    \hypersetup{pdfkeywords=\getattr{keywords}}
+    \hypersetup{pdfproducer=\getattr{institute}}
 }
 
 % Make links footnotes instead of hotlinks:
