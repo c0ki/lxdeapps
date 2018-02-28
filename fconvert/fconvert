@@ -161,8 +161,10 @@ if ((${archive})) ; then
     # Archive input file
     archiveinputfile="${archivedir}/${archivefilesdir}/$(basename ${inputfile%.*}${version}.${inputfile##*.})"
     cp ${inputfile} "${archiveinputfile}"
-    images=$(grep "\!\[.*\]\(.*\)" ${archiveinputfile} | cut -d'(' -f2 | cut -d')' -f1 | sort -u)
+    # Archive meta file
+    [ -z "${metafile}" ] || archivemetafile="${archiveinputfile%.*}.yml" && cp ${metafile} "${archivemetafile}"
     # Archive images
+    images=$(grep "\!\[.*\]\(.*\)" ${archiveinputfile} | cut -d'(' -f2 | cut -d')' -f1 | sort -u)
     if [ ! -z "${images}" ] ; then
         imagesdir="${archivedir}/${archivefilesdir}/images"
         mkdir "${imagesdir}"
