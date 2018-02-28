@@ -15,6 +15,7 @@ metafile=
 outputfile=
 model=
 format=
+archive=
 
 function appargscustom {
     while [ $# -ne 0 ] ; do
@@ -46,6 +47,9 @@ function appargscustom {
                     apperror "Incomplete argument: --output|-o"
                 fi
                 outputfile="$1"
+                ;;
+            --archive)
+                archive=1
                 ;;
             *)
                 if [ ! -z "${inputfile}" ] ; then
@@ -143,5 +147,38 @@ ${cmd}
 rm "${workfile}"
 
 [[ ${fail} -ne 0 ]] && apperror "Error on convert file"
-
 appnotify "Convert success"
+
+# Archive
+if ((${archive})) ; then
+    archivedir="$(dirname "${inputfile}")/archives"
+    [ -d "${archivedir}" ] || mkdir "${archivedir}"
+    archivefilesdir=$(basename "${inputfile%.*}${version}")
+    # Erase archive file ?
+    [ -e "${archivedir}/${archivefilesdir}.tgz" ] && appquestion "Archive file '${archivedir}/${archivefilesdir}.tgz' exists, erase it ?"
+    [ -d "${archivedir}/${archivefilesdir}" ] && rm -rf "${archivedir}/${archivefilesdir}"
+    mkdir "${archivedir}/${archivefilesdir}"
+    # Archive input file
+    archiveinputfile="${archivedir}/${archivefilesdir}/$(basename ${inputfile%.*}${version}.${inputfile##*.})"
+    cp ${inputfile} "${archiveinputfile}"
+    images=$(grep "\!\[.*\]\(.*\)" ${archiveinputfile} | cut -d'(' -f2 | cut -d')' -f1 | sort -u)
+    # Archive images
+    if [ ! -z "${images}" ] ; then
+        imagesdir="${archivedir}/${archivefilesdir}/images"
+        mkdir "${imagesdir}"
+        # Copy and replace into archiveinputfile
+        for image in ${images}; do
+            cp "${image}" "${imagesdir}"
+            sed -i "s#${image}#./images/$(basename ${image})#g" "${archiveinputfile}"
+        done
+    fi
+    # Archive output file
+    cp ${outputfile} "${archivedir}/${archivefilesdir}/"
+    # Compress archive
+    tar -czf ${archivedir}/${archivefilesdir}.tgz -C ${archivedir}/ ${archivefilesdir}
+
+    rm -rf "${archivedir}/${archivefilesdir}"
+
+    appnotify "Archive complete"
+fi
+
