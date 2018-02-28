@@ -65,7 +65,8 @@ function apperror {
 
 function appnotify {
     applogger "[NOTIFY] ${1}"
-    ((MODQUIET)) && return
+    ((MODQUIET)) && return 0
+    ((MODVERBOSE)) || return 0
     echo -ne "\e[0;32m"
     echo -ne "\t-> ${1}"
     echo -e "\e[0m"
@@ -73,7 +74,7 @@ function appnotify {
 
 function appinfo {
     applogger "[INFO] ${1}"
-    ((MODQUIET)) && return
+    ((MODQUIET)) && return 0
     echo -ne "\e[0;36m"
     echo -ne "\t-> ${1}"
     echo -e "\e[0m"
@@ -84,7 +85,7 @@ function applogger {
 }
 
 function appprogress {
-    ((MODQUIET)) && return
+    ((MODQUIET)) && return 0
     cols=$(tput cols)
     text=
     while [ $# -ne 0 ]
@@ -101,7 +102,7 @@ function appprogress {
 }
 
 function appquestion {
-    ((MODFORCE)) && appnotify "[force] ${1} => yes" && return
+    ((MODFORCE)) && appinfo "[force] ${1} => yes" && return 0
     ((MODQUIET)) && apperror "[quiet] ${1} => no"
     while true; do
         read -p "${1} " yn

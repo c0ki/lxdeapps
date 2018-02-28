@@ -18,19 +18,20 @@ then
     function apperror {
         applogger "[ERROR] ${1}"
         ((MODQUIET)) && !(($2)) && exit 1
-        ((MODQUIET)) && return
+        ((MODQUIET)) && return 0
         notify-send --icon="error" "${APP}" "$1"
         !(($2)) && exit 1
     }
 
     function appnotify {
         applogger "[NOTIFY] ${1}"
-        ((MODQUIET)) && return
+        ((MODQUIET)) && return 0
+        ((MODVERBOSE)) || return 0
         notify-send --icon="${APPICON}" "${APP}" "$1"
     }
 
     function appgetfile {
-        ((MODQUIET)) && return
+        ((MODQUIET)) && return 0
         title="${APP}"
         [ ! -z "$1" ] && title="${title}: $1"
         argdir=
@@ -43,7 +44,7 @@ then
     }
 
     function appchoice {
-        ((MODQUIET)) && return
+        ((MODQUIET)) && return 0
         text=$1
         shift
         zenity --window-icon="${APPICON}" --title="${APP}" --list --checklist --text="${text}" --column="checkbox" --column="value" --column="label" --print-column=2 --hide-column=2 --hide-header "$@"  2>/dev/null
@@ -51,7 +52,7 @@ then
 
     PROGRESSBAR=0
     function appprogress {
-        ((MODQUIET)) && return
+        ((MODQUIET)) && return 0
         option=
         [[ "$1" == "pulsate" ]] && option="--pulsate" && shift
         if ! ((PROGRESSBAR))

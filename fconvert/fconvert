@@ -130,13 +130,12 @@ fi
 
 # Build pandoc command
 cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --template=${modelfile} --number-section --toc --highlight-style pygments"
-#cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --number-section --toc --highlight-style pygments"
 [ "${model}" = "slide" ] && cmd="${cmd} -t beamer --slide-level ${slidelevel}"
 for filter in ${filters}; do
     cmd="${cmd} --filter ${APPFILTERSDIR}${filter}"
 done
 
-echo "${cmd}"
+appnotify "${cmd}"
 
 export TEXINPUTS=".:${APPDIR}/include//:"
 ${cmd}
