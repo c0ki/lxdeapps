@@ -14,6 +14,7 @@ inputfile=
 metafile=
 outputfile=
 model=
+modelfile=
 format=
 archive=
 
@@ -81,20 +82,24 @@ fi
 if [ -z "${model}" ] && [ ! -z "${metafile}" ] ; then
     model=$(parseyaml ${metafile} model)
 fi
-[ -z "${model}" ] && apperror "Model is mandatory"
-[ -e "${APPMODELSDIR}${model}.tex" ] || apperror "Model '${model}' not exists"
-modelfile="${APPMODELSDIR}${model}.tex"
+[ -z "${model}" ] || [ -e "${APPMODELSDIR}${model}.tex" ] || apperror "Model '${model}' not exists"
+[ -z "${model}" ] || modelfile="${APPMODELSDIR}${model}.tex"
 
-# Check output file and format
+# Check format
+[ -z "${format}" ] && [ ! -z "${outputfile}" ] && format="${outputfile##*.}"
+[ -z "${format}" ] && format="pdf" && appnotify "[default] Format: ${format}"
+
+# Check output file
 if [ -z "${outputfile}" ] && [ ! -z "${metafile}" ] ; then
-    [ -z "${format}" ] && format="pdf" && appnotify "[default] Format: ${format}"
     version=$(parseyaml ${metafile} version)
     [ -z "${version}" ] || version="-v${version}"
     outputfile="${inputfile%.*}${version}.${format}" && appnotify "[default] Output file: ${outputfile}"
 fi
-[ ! -z "${outputfile}" ] && [ ! -z "${format}" ] \
-    && [ "${format}" != "${outputfile##*.}" ] && apperror "Invalid format '${format}' to output file '${outputfile}'"
-[ -z "${format}" ] && format="${outputfile##*.}"
+[ -z "${outputfile}" ] && outputfile="${inputfile%.*}.${format}" && appnotify "[default] Output file: ${outputfile}"
+
+# Check format <> output file extension
+[ "${format}" != "${outputfile##*.}" ] && apperror "Invalid format '${format}' to output file '${outputfile}'"
+
 outputfile=$(realpath "${outputfile}")
 # Erase output file ?
 [ -e "${outputfile}" ] && appquestion "Output file '${outputfile}' exists, erase it ?"
@@ -133,8 +138,11 @@ if [ "${model}" = "slide" ]; then
 fi
 
 # Build pandoc command
-cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --template=${modelfile} --number-section --toc --highlight-style pygments"
+cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --number-section --toc --highlight-style pygments"
+[ -z "${model}" ] || cmd="${cmd} --template=${modelfile}"
 [ "${model}" = "slide" ] && cmd="${cmd} -t beamer --slide-level ${slidelevel}"
+[ "${format}" = "mediawiki" ] && cmd="${cmd} -t mediawiki"
+[ "${format}" = "dokuwiki" ] && cmd="${cmd} -t dokuwiki"
 for filter in ${filters}; do
     cmd="${cmd} --filter ${APPFILTERSDIR}${filter}"
 done
