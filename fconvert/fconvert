@@ -116,7 +116,7 @@ if [ "${model}" = "slide" ] ; then
 fi
 
 # Filters
-filters=$(ls ${APPFILTERSDIR})
+filters=$(ls ${APPFILTERSDIR}*.py)
 
 appnotify "inputfile: ${inputfile}"
 appnotify "metafile: ${metafile}"
@@ -146,7 +146,8 @@ cmd="pandoc ${workfile} ${metafile} -o ${outputfile} --number-section --toc --hi
 [ "${format}" = "mediawiki" ] && cmd="${cmd} -t mediawiki"
 [ "${format}" = "dokuwiki" ] && cmd="${cmd} -t dokuwiki"
 for filter in ${filters}; do
-    cmd="${cmd} --filter ${APPFILTERSDIR}${filter}"
+    [ ${filters:0:1} == "/" ] || filter="${APPFILTERSDIR}${filter}"
+    cmd="${cmd} --filter ${filter}"
 done
 
 appnotify "${cmd}"
