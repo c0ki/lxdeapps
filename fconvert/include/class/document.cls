@@ -50,6 +50,10 @@
 \AtEndPreamble{
     \RequirePackage[~documenttype~]{filigrane}
 }
+% Code
+\AtEndPreamble{
+    \RequirePackage{code}
+}
 
 % Lang & Encoding
 \RequirePackage[T1]{fontenc}
