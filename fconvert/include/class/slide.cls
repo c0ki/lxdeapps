@@ -118,5 +118,5 @@
 }
 
 %% Counter
-\setcounter{secnumdepth}{5} % On affiche une numérotation sur une profondeur de 5
+\setcounter{secnumdepth}{3} % On affiche une numérotation sur une profondeur de 3
 \setcounter{tocdepth}{3}        % La table des matières va a une profondeur de 3
