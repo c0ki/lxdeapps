@@ -78,22 +78,24 @@ if [ -z "${metafile}" ] ; then
 fi
 [ -z "${metafile}" ] || metafile=$(realpath "${metafile}")
 
-# Check model
-if [ -z "${model}" ] && [ ! -z "${metafile}" ] ; then
-    model=$(parseyaml ${metafile} model)
-fi
-[ -z "${model}" ] || [ -e "${APPMODELSDIR}${model}.tex" ] || apperror "Model '${model}' not exists"
-[ -z "${model}" ] || modelfile="${APPMODELSDIR}${model}.tex"
-
 # Check format
 [ -z "${format}" ] && [ ! -z "${outputfile}" ] && format="${outputfile##*.}"
 [ -z "${format}" ] && format="pdf" && appnotify "[default] Format: ${format}"
 
+# Check model
+if [ -z "${model}" ] && [ ! -z "${metafile}" ] ; then
+    model=$(parseyaml ${metafile} model)
+fi
+[ -z "${model}" ] && ( [ "${format}" = "pdf" ] || [ "${format}" = "tex" ] ) && model="rapport" && appnotify "[default] Model: ${model}"
+[ -z "${model}" ] || [ -e "${APPMODELSDIR}${model}.tex" ] || apperror "Model '${model}' not exists"
+[ -z "${model}" ] || modelfile="${APPMODELSDIR}${model}.tex"
+
 # Check output file
+suffixversion=
 if [ -z "${outputfile}" ] && [ ! -z "${metafile}" ] ; then
     version=$(parseyaml ${metafile} version)
-    [ -z "${version}" ] || version="-v${version}"
-    outputfile="${inputfile%.*}${version}.${format}" && appnotify "[default] Output file: ${outputfile}"
+    [ -z "${version}" ] || suffixversion="-v${version}"
+    outputfile="${inputfile%.*}${suffixversion}.${format}" && appnotify "[default] Output file: ${outputfile}"
 fi
 [ -z "${outputfile}" ] && outputfile="${inputfile%.*}.${format}" && appnotify "[default] Output file: ${outputfile}"
 
@@ -161,16 +163,17 @@ appnotify "Convert success"
 if ((${archive})) ; then
     archivedir="$(dirname "${inputfile}")/archives"
     [ -d "${archivedir}" ] || mkdir "${archivedir}"
-    archivefilesdir=$(basename "${inputfile%.*}${version}")
+
+    archivefilesdir=$(basename "${inputfile%.*}${suffixversion}")
     # Erase archive file ?
     [ -e "${archivedir}/${archivefilesdir}.tgz" ] && appquestion "Archive file '${archivedir}/${archivefilesdir}.tgz' exists, erase it ?"
     [ -d "${archivedir}/${archivefilesdir}" ] && rm -rf "${archivedir}/${archivefilesdir}"
     mkdir "${archivedir}/${archivefilesdir}"
     # Archive input file
-    archiveinputfile="${archivedir}/${archivefilesdir}/$(basename ${inputfile%.*}${version}.${inputfile##*.})"
+    archiveinputfile="${archivedir}/${archivefilesdir}/$(basename ${inputfile%.*}${suffixversion}.${inputfile##*.})"
     cp ${inputfile} "${archiveinputfile}"
     # Archive meta file
-    [ -z "${metafile}" ] || archivemetafile="${archiveinputfile%.*}.yml" && cp ${metafile} "${archivemetafile}"
+    [ -z "${metafile}" ] || ( archivemetafile="${archiveinputfile%.*}.yml" && cp ${metafile} "${archivemetafile}" )
     # Archive images
     images=$(grep "\!\[.*\]\(.*\)" ${archiveinputfile} | cut -d'(' -f2 | cut -d')' -f1 | sort -u)
     if [ ! -z "${images}" ] ; then
