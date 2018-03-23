@@ -106,8 +106,10 @@
                             \ifattr{subtitle}{
                                 \centering\LARGE\scshape\textcolor{color2}{~subtitle~}\par
                             }
-                            \vspace*{0.5cm}
-                            \centering\Huge\scshape\textcolor{color0}{~project~}\par
+                            \ifattr{project}{
+                                \vspace*{0.5cm}
+                                \centering\Huge\scshape\textcolor{color0}{~project~}\par
+                            }
                             \vspace*{0.7cm}
                         }
                         \hspace*{5mm}
