@@ -14,6 +14,7 @@
 \def\find@attributes#1~{\getattr{#1}}
 %\def\ifattr#1#2{\if\relax\getattr{#1}\relax\else#2\fi}
 \newcommand\ifattr[2]{\if\relax\getattr{#1}\relax\else#2\fi}
+\newcommand\ifnoattr[2]{\if\relax\getattr{#1}\relax#2\fi}
 \makeatother
 
 % font type options
@@ -56,7 +57,7 @@
 
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
 \RequirePackage{fancyvrb}
-\RequirePackage{hyperref}
+\RequirePackage[unicode=true]{hyperref}
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
 \urlstyle{same}  % don't use monospace font for urls
 \VerbatimFootnotes % allows verbatim text in footnotes

@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{document}[2016/11/30 Document, V1.0]
+\ProvidesClass{paper}[2018/06/04 Paper, V1.0]
 % Author: c0kinou
 \RequirePackage{etoolbox}
 
@@ -55,6 +55,9 @@
 \AtEndPreamble{
     \RequirePackage{code}
 }
+
+% Multicolumns
+\RequirePackage{multicol}
 
 % Lang & Encoding
 \RequirePackage[T1]{fontenc}
@@ -154,30 +157,9 @@
     \IfFileExists{~institute~.theme.sty}{\RequirePackage{~institute~.theme}}{}
 }
 
-\newcommand\metaline[2]{& #1 & #2 &\tabularnewline}
-
-\newcommand\metas{
-    \renewcommand\and{\par}
-    \vspace{1cm}
-    \begin{center}
-        \begin{tabular}{p{1cm}rp{6cm}p{1cm}}
-            \toprule
-            \metaline{\textbf{Attribut}}{\textbf{Valeur}}
-            \midrule
-            \ifattr{version}{\metaline{Version}{~version~}}
-            \ifattr{date}{\metaline{Date}{~date~}}
-            \ifattr{author}{\metaline{Rédaction}{~author~}}
-            \ifattr{validator}{\metaline{Validation}{~validator~}}
-            \ifattr{history}{\metaline{Révisions}{~history~}}
-            \bottomrule
-        \end{tabular}
-    \end{center}
-    \vspace{1cm}
-}
-
 %% Counter
-\setcounter{secnumdepth}{5} % On affiche une numérotation sur une profondeur de 5
-\setcounter{tocdepth}{3}        % La table des matières va a une profondeur de 3
+\setcounter{secnumdepth}{0} % On affiche pas de numérotation
+
 
 % Redefines (sub)paragraphs to behave more like sections
 \ifx\paragraph\undefined\else

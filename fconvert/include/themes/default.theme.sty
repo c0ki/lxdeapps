@@ -9,6 +9,7 @@
 \attr{theme.topbarbackground}{topbarbg.jpg}
 
 % Colors
+\RequirePackage{transparent}
 \RequirePackage{xcolor}
 % theme color
 \definecolor{titlebackground}{rgb}{0.3,0.5,0.8}% 4c7fcc
@@ -25,6 +26,129 @@
 % headers and footers
 \RequirePackage{lastpage}
 \RequirePackage[strict]{changepage}
+
+% For paper
+\@ifclassloaded{paper}{
+    \RequirePackage{fancyhdr}
+    \fancypagestyle{pagestyle}{
+        \renewcommand\headrulewidth{0pt}
+        \renewcommand\footrulewidth{0pt}
+        \fancyhead[L]{
+            \ifattr{type}{
+                \textcolor{color1}{~type~}
+            }
+        }
+        \fancyhead[C]{
+            \textcolor{color1}{~title~\ifattr{subtitle}{: ~subtitle~}}
+        }
+        \fancyhead[R]{
+            \textcolor{color1}{\ifattr{date}{~date~}}
+        }
+        \fancyfoot[L]{
+            \ifattr{institute.logo}{
+                \vspace*{-0.5cm}
+                \begin{wrapfigure}[4]{l}{3cm}
+                    \vspace*{-0.5cm}
+                    \includegraphics[width=3cm]{\getattr{institute.logo}}
+                \end{wrapfigure}
+                \fontsize{9pt}{9pt}\selectfont
+                \textcolor{color1}{
+                    \getattr{institute.name} \ifnoattr{theme.hideaddress}{\getattr{institute.address}}\newline
+                    \ifnoattr{theme.hidetel}{\getattr{institute.tel}\newline}
+                    \ifnoattr{theme.hideemail}{\getattr{institute.email} | }\getattr{institute.web}
+                }
+            }
+        }
+        \fancyfoot[C]{}
+        \fancyfoot[R]{
+            \textcolor{color1}{Page \thepage/\pageref*{LastPage}}
+        }
+    }
+    \fancypagestyle{firstpagestyle}{%
+        \renewcommand\headrulewidth{0pt}
+        \renewcommand\footrulewidth{0pt}
+        \fancyhead[L]{}
+        \fancyhead[C]{}
+        \fancyhead[R]{
+            \textcolor{color1}{\ifattr{date}{~date~}}
+        }
+        \fancyfoot[L]{
+            \fontsize{9pt}{9pt}\selectfont
+            \textcolor{color1}{
+                \getattr{institute.name} \ifnoattr{theme.hideaddress}{\getattr{institute.address}}\newline
+                \ifnoattr{theme.hidetel}{\getattr{institute.tel}\newline}
+                \ifnoattr{theme.hideemail}{\getattr{institute.email} | }\getattr{institute.web}
+            }
+        }
+        \fancyfoot[C]{}
+        \fancyfoot[R]{
+            \textcolor{color1}{Page \thepage/\pageref*{LastPage}}
+        }
+    }
+    \pagestyle{pagestyle}
+
+    \newsavebox\defaultsavebox
+    \newenvironment{minipageimg}[2][]{%
+       \def\imgcmd{\includegraphics[width=\wd\defaultsavebox,height=\dimexpr\ht\defaultsavebox+\dp\defaultsavebox\relax,keepaspectratio=false,#1]{#2}}%
+       \begin{lrbox}{\defaultsavebox}%
+       \begin{minipage}%
+    }{%
+       \end{minipage}
+       \end{lrbox}%
+       \sbox\defaultsavebox{\fbox{\usebox\defaultsavebox}}%
+       \mbox{\rlap{\raisebox{-\dp\defaultsavebox}{\imgcmd}}\usebox\defaultsavebox}%
+    }
+
+    \renewcommand\maketitle{
+        \thispagestyle{firstpagestyle}
+        \vspace*{-2.5cm}
+        \hspace*{-1cm}
+        \ifattr{institute.logo}{
+            \includegraphics[height=2cm]{\getattr{institute.logo}}
+        }
+        \begin{adjustwidth}{-2cm}{}
+            \begin{minipageimg}{\getattr{theme.titlebackground}}{21cm}
+
+                \vspace*{2.5mm}
+                \begin{center}
+                    \colorbox{color1}{
+                        \hspace*{5mm}
+                        \parbox[t]{10cm}{
+                            \vspace*{2.5mm}
+                            \centering\Huge\scshape\textcolor{color2}{~title~}\par
+                            \ifattr{subtitle}{
+                                \centering\LARGE\scshape\textcolor{color2}{~subtitle~}\par
+                            }
+                            \ifattr{project}{
+                                \vspace*{0.5cm}
+                                \centering\Huge\scshape\textcolor{color0}{~project~}\par
+                            }
+                            \vspace*{2.5mm}
+                        }
+                        \hspace*{5mm}
+                    }
+                \end{center}
+                \vspace*{2.5mm}
+            \end{minipageimg}
+        \end{adjustwidth}
+    }
+
+
+    \let\oldsection\section
+    \def\section#1{
+        \vspace{-1em}
+        \oldsection{#1}
+        \vspace{-1.5em}
+    }
+
+    \let\oldsubsection\subsection
+    \def\subsection#1{
+        \vspace{-1em}
+        \oldsubsection{#1}
+        \vspace{-1.5em}
+    }
+
+}{}
 
 % For document
 \@ifclassloaded{document}{
@@ -68,8 +192,11 @@
         \fancyhead[R]{}
         \fancyfoot[L]{
             \fontsize{9pt}{9pt}\selectfont
-            \textcolor{color1}{~institute.name~}
-            \textcolor{color1}{~institute.contact~}
+            \textcolor{color1}{
+                \getattr{institute.name}\ifnoattr{theme.hideaddress}{\getattr{institute.address}}\newline
+                \ifnoattr{theme.hidetel}{\getattr{institute.tel}\newline}
+                \ifnoattr{theme.hideemail}{\getattr{institute.email} | }\getattr{institute.web}
+            }
         }
         \fancyfoot[C]{}
         \fancyfoot[R]{}
@@ -173,7 +300,11 @@
 
             \vspace{0.3cm}
             \begin{adjustwidth}{0.3cm}{0.3cm}
-                \tiny{~institute.name~ | ~institute.contact~}
+                \tiny{
+                    \getattr{institute.name} \ifnoattr{theme.hideaddress}{\getattr{institute.address}}\newline
+                    \ifnoattr{theme.hidetel}{\getattr{institute.tel}\newline}
+                    \ifnoattr{theme.hideemail}{\getattr{institute.email} | }\getattr{institute.web}
+                }
             \end{adjustwidth}
 
             \begin{minipage}{\linewidth}
@@ -230,3 +361,17 @@
 
 %% end package
 \endinput
+
+%% Change icons list
+\AtBeginDocument {
+%    \renewcommand{\labelitemi}{$\bullet$}
+    \renewcommand{\labelitemii}{$\circ$}
+    \renewcommand{\labelitemiii}{$\small\square$}
+
+    %circ — An open circle
+    %cdot — A centered dot
+    %star — A five-pointed star
+    %ast — A centered asterisk
+    %rightarrow — A short right-pointing arrow
+    %diamondsuit — An open diamond
+}
