@@ -59,6 +59,7 @@
 % Lang & Encoding
 \RequirePackage[T1]{fontenc}
 \RequirePackage[utf8]{inputenc}
+\RequirePackage{soulutf8}
 \RequirePackage{eurosym}
 %%% For €
 %\RequirePackage{textcomp}
