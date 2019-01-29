@@ -34,6 +34,7 @@
 \DeclareOption{draft}{\attr{documenttype}{draft}}
 \DeclareOption{workinprogress}{\attr{documenttype}{wip}}
 \DeclareOption{wip}{\attr{documenttype}{wip}}
+\DeclareOption{validation}{\attr{documenttype}{validation}}
 \DeclareOption{final}{\attr{documenttype}{final}}
 
 % Execute default options
@@ -55,6 +56,9 @@
 \AtEndPreamble{
     \RequirePackage{code}
 }
+
+% Multicolumns
+\RequirePackage{multicol}
 
 % Lang & Encoding
 \RequirePackage[T1]{fontenc}
@@ -121,6 +125,23 @@
 
 \RequirePackage{listings}
 
+% List
+\RequirePackage{enumitem}
+\setlist[description]{style=nextline, itemsep=1em}
+\let\origdescription\description
+\renewenvironment{description}{
+\def\tightlist{%
+  \setlength{\itemsep}{\the\parskip}}
+  \let\origitemize\itemize
+  \renewenvironment{itemize}{
+    \def\tightlist{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \origitemize[leftmargin=3em,topsep=-\the\parskip]}
+
+  \origdescription
+}
+{\endlist}
+
 \RequirePackage{longtable,booktabs}
 % Fix footnotes in tables (requires footnote package)
 \IfFileExists{footnote.sty}{\RequirePackage{footnote}\makesavenoteenv{long table}}{}
@@ -148,12 +169,10 @@
   \endorigfigure
 }
 
-\AtEndPreamble{
-    \IfFileExists{~institute~.institute.sty}{\RequirePackage{~institute~.institute}}{}
-    \RequirePackage{default.theme}
-    \IfFileExists{~theme~.theme.sty}{\RequirePackage{~theme~.theme}}{}
-    \IfFileExists{~institute~.theme.sty}{\RequirePackage{~institute~.theme}}{}
-}
+\IfFileExists{~institute~.institute.sty}{\RequirePackage{~institute~.institute}}{}
+\RequirePackage{default.theme}
+\IfFileExists{~theme~.theme.sty}{\RequirePackage{~theme~.theme}}{}
+\IfFileExists{~institute~.theme.sty}{\RequirePackage{~institute~.theme}}{}
 
 \newcommand\metaline[2]{& #1 & #2 &\tabularnewline}
 
