@@ -58,8 +58,6 @@
 
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
 \RequirePackage{fancyvrb}
-\RequirePackage[unicode=true]{hyperref}
-\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
 \urlstyle{same}  % don't use monospace font for urls
 \VerbatimFootnotes % allows verbatim text in footnotes
 
