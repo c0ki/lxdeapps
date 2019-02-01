@@ -169,10 +169,12 @@
   \endorigfigure
 }
 
-\IfFileExists{~institute~.institute.sty}{\RequirePackage{~institute~.institute}}{}
 \RequirePackage{default.theme}
-\IfFileExists{~theme~.theme.sty}{\RequirePackage{~theme~.theme}}{}
-\IfFileExists{~institute~.theme.sty}{\RequirePackage{~institute~.theme}}{}
+\AtEndPreamble{
+    \IfFileExists{~institute~.institute.sty}{\RequirePackage{~institute~.institute}}{}
+    \IfFileExists{~theme~.theme.sty}{\RequirePackage{~theme~.theme}}{}
+    \IfFileExists{~institute~.theme.sty}{\RequirePackage{~institute~.theme}}{}
+}
 
 \newcommand\metaline[2]{& #1 & #2 &\tabularnewline}
 
