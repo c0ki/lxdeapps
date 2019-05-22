@@ -212,3 +212,5 @@
 \fi
 
 \RequirePackage{dirtree}
+\renewcommand*\DTstyle{\sffamily}
+\renewcommand*\DTstylecomment{\texttt}
