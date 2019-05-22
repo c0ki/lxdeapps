@@ -9,7 +9,7 @@ __author__ = "c0kinou"
 from pandocfilters import toJSONFilter, stringify, Para, Plain, Str, RawInline
 import re, sys
 
-FLAG_HL = re.compile('(\{\+(.*?)\+\})')
+FLAG_HL = re.compile('(\{\+(\:([^\s]+)\s+)?\s*(.*?)\s*\+\})')
 LATEX_HL_BEGIN = r'\hl{'
 LATEX_HL_END = r'}'
 
@@ -24,16 +24,19 @@ def filterWdiff(key, value, fmt, meta):
         if (FLAG_HL.search(value)):
             flagValues = FLAG_HL.findall(value)
             for idx, flagValue in enumerate(flagValues):
-                value = value.replace(flagValue[0], LATEX_HL_BEGIN + " " + flagValue[1] + " " + LATEX_HL_END)
+                if (flagValue[2]):
+                    value = value.replace(flagValue[0], " " + r'\colorbox{' + flagValue[2] + r'}{' + " " + flagValue[3] + " " + r'}' + " ")
+                else:
+                    value = value.replace(flagValue[0], " " + r'\hl{' + " " + flagValue[3] + " " + r'}' + " ")
 
             values = re.split('\s+', value)
             newvalues = []
             addspace = False
             for value in values:
-                if (value == LATEX_HL_BEGIN):
+                if (value[:1] == '\\'):
                     newvalues = newvalues + [Str(' '), RawInline(fmt, value)]
                     addspace = False
-                elif (value == LATEX_HL_END):
+                elif (value == r'}'):
                     newvalues = newvalues + [RawInline(fmt, value), Str(' ')]
                     addspace = False
                 else:
