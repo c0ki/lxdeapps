@@ -19,15 +19,15 @@ def filterList(key, value, fmt, meta):
         try:
             lastStr
         except NameError:
-            lastStr = None
-        
+            lastStr = ""
+
         if key == 'Str':
             #sys.stderr.write("value %s\n" % value.encode('utf-8'))
             lastStr = value
-        elif (key == 'OrderedList' and lastStr[-1] == ':'):
+        elif (key == 'OrderedList' and len(lastStr) > 0 and lastStr[-1] == ':'):
             attrs, items = value
             return [RawBlock(fmt, latex_begin)] + [OrderedList(attrs, items)] + [RawBlock(fmt, latex_end)]
-        elif (key == 'BulletList' and lastStr[-1] == ':'):
+        elif (key == 'BulletList' and len(lastStr) > 0 and lastStr[-1] == ':'):
             items = value
             return [RawBlock(fmt, latex_begin)] + [BulletList(items)] + [RawBlock(fmt, latex_end)]
 
