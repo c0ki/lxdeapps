@@ -56,6 +56,8 @@
 \AtEndPreamble{
     \RequirePackage{code}
 }
+% Custom color
+\RequirePackage{customcolor}
 
 % Multicolumns
 \RequirePackage{multicol}
@@ -212,5 +214,5 @@
 \fi
 
 \RequirePackage{dirtree}
-\renewcommand*\DTstyle{\sffamily}
+\renewcommand*\DTstyle{\sffamily\small}
 \renewcommand*\DTstylecomment{\texttt}
