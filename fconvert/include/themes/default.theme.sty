@@ -253,6 +253,14 @@
 
 % For slide
 \@ifclassloaded{slide}{
+    %% Mise en place des multi-slide
+    \let\oldframe\frame
+    \renewcommand\frame[1][allowframebreaks]{\oldframe[#1]}
+    \setbeamertemplate{frametitle continuation}[from second][(\insertcontinuationcount)]
+
+    %% Suppression des boutons de navigation
+    \beamertemplatenavigationsymbolsempty
+
     %% Header & footer
     \RequirePackage[headheight=12pt,footheight=1cm]{beamerthemeboxes}
     \addheadboxtemplate{\color{themebackground}}{\color{theme1}\tiny\quad\ifattr{project}{~project~: }{~title~}\ifattr{subtitle}{: ~subtitle~}}
@@ -310,16 +318,16 @@
             \end{adjustwidth}
 
             \begin{minipage}{\linewidth}
-                \vspace{-31em}
+                \vspace{-27em}
                 \begin{center}
                     \colorbox{themebackground}{
                         \hspace{5mm}
                         \parbox[t]{0.7\linewidth}{
                             \vspace*{0.7cm}
-                            \centering\Huge\scshape\textcolor{color2}{~title~}
+                            \centering\Huge\scshape\textcolor{color2}{~title~}\\
                             \ifattr{subtitle}{
                                 \vspace*{0.5cm}
-                                \centering\LARGE\scshape\textcolor{color2}{~subtitle~}
+                                \centering\LARGE\scshape\textcolor{color2}{~subtitle~}\\
                             }
                             \vspace*{0.5cm}
                             \centering\Huge\scshape\textcolor{color0}{~project~}
@@ -337,7 +345,7 @@
     \def\section#1{
         \oldsection{#1}
         \begin{frame}
-            \vspace{-0.33cm}
+            \vspace{-0.24cm}
             \begin{adjustwidth}{-0.5cm}{-0.5cm}
             \begin{minipage}{\linewidth}
                 \includegraphics[width=\linewidth,height=5em,keepaspectratio=false]{\getattr{theme.topbarbackground}}
