@@ -42,7 +42,6 @@ def filterMutiColumns(key, value, fmt, meta):
                 if not incols:
                     incols = 1
                     output = output + [RawInline(fmt, r'\begin{multicols}{' + size + '}')]
-                sys.stderr.write("output %s\n" % output)
                 return output
         fmc_lastStr = value
 
