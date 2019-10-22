@@ -17,6 +17,11 @@ def filterMutiColumns(key, value, fmt, meta):
     if fmt == 'beamer':
         fmt = 'latex'
     if (key == "Str" and fmt == 'latex'):
+        global fmc_lastStr
+        try:
+            fmc_lastStr
+        except NameError:
+            fmc_lastStr = ""
         #sys.stderr.write("key %s\n" % key)
         #sys.stderr.write("value %s\n" % value.encode('utf-8'))
         if FLAG_COLUMNS.match(value.encode('utf-8')):
@@ -29,13 +34,17 @@ def filterMutiColumns(key, value, fmt, meta):
             #sys.stderr.write("size %s\n" % size)
             if (incols and size is None):
                 incols = 0
-                return RawInline(fmt, r'\end{multicols}\vspace{-0.5cm}')
+                return RawInline(fmt, r'\end{multicols}\vspace{-\the\parskip}')
             else:
                 output = []
+                if fmc_lastStr[-1] == ':':
+                    output = output + [RawInline(fmt, r'\vspace{-\the\parskip}')]
                 if not incols:
                     incols = 1
                     output = output + [RawInline(fmt, r'\begin{multicols}{' + size + '}')]
+                sys.stderr.write("output %s\n" % output)
                 return output
+        fmc_lastStr = value
 
 if __name__ == '__main__':
     toJSONFilter(filterMutiColumns)
