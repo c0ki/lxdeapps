@@ -35,6 +35,7 @@
 \DeclareOption{workinprogress}{\attr{documenttype}{wip}}
 \DeclareOption{wip}{\attr{documenttype}{wip}}
 \DeclareOption{final}{\attr{documenttype}{final}}
+\DeclareOption{internal}{\attr{documenttype}{internal}}
 
 % Execute default options
 \ExecuteOptions{11pt,sans,cantarell,final}

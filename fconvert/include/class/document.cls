@@ -36,6 +36,7 @@
 \DeclareOption{wip}{\attr{documenttype}{wip}}
 \DeclareOption{validation}{\attr{documenttype}{validation}}
 \DeclareOption{final}{\attr{documenttype}{final}}
+\DeclareOption{internal}{\attr{documenttype}{internal}}
 
 % Execute default options
 \ExecuteOptions{11pt,sans,cantarell,final}
